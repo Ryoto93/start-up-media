@@ -3,7 +3,8 @@
 
 import Header from '@/components/Header';
 import ArticleCard from '@/components/ArticleCard';
-import FilterSection, { FilterState } from '@/components/FilterSection';
+import FilterSection from '@/components/FilterSection';
+import { FilterState } from '@/types';
 import { useState } from 'react';
 
 export default function ArticlesPage() {
@@ -22,7 +23,7 @@ export default function ArticlesPage() {
 
     if (filters.categories.length > 0) {
       filtered = filtered.filter(article => 
-        filters.categories.some(category => article.categories.includes(category))
+        filters.categories.some((category: string) => article.categories.includes(category))
       );
     }
 

@@ -2,6 +2,8 @@
 import type { Metadata } from "next";
 import { Pacifico } from "next/font/google";
 import "./globals.css";
+import GoogleAnalytics from "@/components/GoogleAnalytics";
+import { PageTrackingProvider } from "@/components/PageTrackingProvider";
 
 const pacifico = Pacifico({
   weight: '400',
@@ -32,7 +34,10 @@ export default function RootLayout({
         className={`${pacifico.variable} antialiased`}
         style={{ fontFamily: "'TBUDゴシック Std SL', sans-serif" }}
       >
-        {children}
+        <GoogleAnalytics />
+        <PageTrackingProvider>
+          {children}
+        </PageTrackingProvider>
       </body>
     </html>
   );

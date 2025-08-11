@@ -8,18 +8,21 @@ import EngagementSection from './EngagementSection';
 import RelatedArticles from './RelatedArticles';
 import NavigationArticles from './NavigationArticles';
 import { useState, useEffect } from 'react';
+import { Article } from '@/types';
 
 interface ArticleDetailProps {
   articleId: string;
 }
 
 export default function ArticleDetail({ articleId }: ArticleDetailProps) {
-  const [article, setArticle] = useState(null);
+  const [article, setArticle] = useState<Article | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const foundArticle = allArticles.find((a) => a.id === articleId);
-    setArticle(foundArticle);
+    if (foundArticle) {
+      setArticle(foundArticle);
+    }
     setLoading(false);
   }, [articleId]);
 
@@ -79,7 +82,7 @@ export default function ArticleDetail({ articleId }: ArticleDetailProps) {
   );
 }
 
-const allArticles = [
+const allArticles: Article[] = [
   {
     id: '1',
     title: '大手メーカーから食品スタートアップへ：失敗から学んだマーケティング戦略',
@@ -148,6 +151,7 @@ const allArticles = [
     outcome: '失敗体験',
     categories: ['マーケティング', '事業計画'],
     date: '2024-01-15',
+    imageUrl: 'https://readdy.ai/api/search-image?query=Modern%20entrepreneur%20working%20on%20food%20startup%20business%20plan%20in%20bright%20office%20space%20with%20natural%20lighting%2C%20minimal%20desk%20setup%20with%20laptop%20and%20notebooks%2C%20warm%20orange%20accent%20colors%2C%20professional%20yet%20approachable%20atmosphere%2C%20high%20quality%20photography&width=400&height=250&seq=trending1&orientation=landscape',
     eventDate: '2023-08-15',
   },
   {
@@ -236,6 +240,7 @@ const allArticles = [
     outcome: 'その他',
     categories: ['マインドセット', '家族'],
     date: '2024-01-20',
+    imageUrl: 'https://readdy.ai/api/search-image?query=Professional%20Japanese%20businessman%20contemplating%20career%20change%20in%20modern%20office%20space%2C%20thoughtful%20expression%2C%20clean%20white%20background%20with%20warm%20orange%20lighting%2C%20entrepreneurial%20mindset%20portrait&width=400&height=250&seq=article4&orientation=landscape',
     eventDate: '2022-06-01',
   },
   {
@@ -335,6 +340,7 @@ const allArticles = [
     outcome: 'その他',
     categories: ['転職', 'マインドセット'],
     date: '2024-01-18',
+    imageUrl: 'https://readdy.ai/api/search-image?query=Professional%20Japanese%20businessman%20submitting%20resignation%20letter%20in%20modern%20office%20space%2C%20determined%20expression%2C%20clean%20white%20background%20with%20warm%20orange%20lighting%2C%20career%20transition%20portrait&width=400&height=250&seq=article5&orientation=landscape',
     eventDate: '2023-03-15',
   },
   {
@@ -401,6 +407,7 @@ NTTデータで15年間、大規模システム開発のプロジェクトマネ
     outcome: '成功体験',
     categories: ['事業計画', '経理'],
     date: '2024-01-12',
+    imageUrl: 'https://readdy.ai/api/search-image?query=Healthcare%20technology%20startup%20office%20environment%20with%20medical%20devices%20and%20computers%2C%20clean%20modern%20workspace%20with%20white%20and%20orange%20color%20scheme%2C%20professional%20female%20entrepreneur%20reviewing%20business%20documents%2C%20bright%20natural%20lighting&width=400&height=250&seq=trending2&orientation=landscape',
     eventDate: '2023-09-20',
   },
   {
@@ -465,6 +472,7 @@ NTTデータで15年間、大規模システム開発のプロジェクトマネ
     outcome: 'その他',
     categories: ['開発', '営業'],
     date: '2024-01-10',
+    imageUrl: 'https://readdy.ai/api/search-image?query=Fintech%20startup%20workspace%20with%20multiple%20monitors%20displaying%20financial%20data%20and%20apps%2C%20modern%20office%20with%20clean%20white%20walls%20and%20orange%20accent%20lighting%2C%20entrepreneur%20working%20on%20mobile%20app%20development%2C%20professional%20photography&width=400&height=250&seq=trending3&orientation=landscape',
     eventDate: '2023-11-10',
   },
 ];

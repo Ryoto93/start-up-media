@@ -1,18 +1,13 @@
 'use client';
 
 import { useState } from 'react';
+import { trackFilterUse } from '@/lib/gtag';
 
 interface FilterSectionProps {
   onFilterChange: (filters: FilterState) => void;
 }
 
-export interface FilterState {
-  phase: string;
-  outcome: string;
-  categories: string[];
-  searchKeyword: string;
-  sortBy: string;
-}
+import { FilterState } from '@/types';
 
 export default function FilterSection({ onFilterChange }: FilterSectionProps) {
   const [filters, setFilters] = useState<FilterState>({
@@ -23,9 +18,7 @@ export default function FilterSection({ onFilterChange }: FilterSectionProps) {
     sortBy: 'newest'
   });
 
-  const [showPhaseDropdown, setShowPhaseDropdown] = useState(false);
-  const [showOutcomeDropdown, setShowOutcomeDropdown] = useState(false);
-  const [showSortDropdown, setShowSortDropdown] = useState(false);
+
 
   const phases = ['起業検討期', '直前・直後', '開始期', '成長期'];
   const outcomes = ['成功体験', '失敗体験', 'その他'];
@@ -40,6 +33,23 @@ export default function FilterSection({ onFilterChange }: FilterSectionProps) {
     const updated = { ...filters, ...newFilters };
     setFilters(updated);
     onFilterChange(updated);
+    
+    // Google Analytics でフィルター使用を追跡
+    Object.entries(newFilters).forEach(([key, value]) => {
+      if (value && value !== filters[key as keyof FilterState]) {
+        if (key === 'phase' && typeof value === 'string') {
+          trackFilterUse('phase', value);
+        } else if (key === 'outcome' && typeof value === 'string') {
+          trackFilterUse('outcome', value);
+        } else if (key === 'categories' && Array.isArray(value)) {
+          value.forEach(category => trackFilterUse('category', category));
+        } else if (key === 'searchKeyword' && typeof value === 'string' && value.trim()) {
+          trackFilterUse('search', value.trim());
+        } else if (key === 'sortBy' && typeof value === 'string') {
+          trackFilterUse('sort', value);
+        }
+      }
+    });
   };
 
   const handleCategoryToggle = (category: string) => {

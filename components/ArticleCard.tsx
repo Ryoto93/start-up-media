@@ -3,18 +3,9 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
+import { trackArticleLike } from '@/lib/gtag';
 
-interface ArticleCardProps {
-  id: string;
-  title: string;
-  summary: string;
-  author: string;
-  likes: number;
-  phase: string;
-  outcome: string;
-  categories: string[];
-  date: string;
-}
+import { ArticleCardProps } from '@/types';
 
 export default function ArticleCard({ id, title, summary, author, likes, phase, outcome, categories, date }: ArticleCardProps) {
   const [isLiked, setIsLiked] = useState(false);
@@ -25,6 +16,11 @@ export default function ArticleCard({ id, title, summary, author, likes, phase, 
     e.stopPropagation();
     setIsLiked(!isLiked);
     setLikeCount(isLiked ? likeCount - 1 : likeCount + 1);
+    
+    // Google Analytics でいいねイベントを追跡
+    if (!isLiked) {
+      trackArticleLike(id, title);
+    }
   };
 
   const phaseColors: { [key: string]: string } = {

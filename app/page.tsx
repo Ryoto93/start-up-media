@@ -14,6 +14,7 @@ export default function Home() {
       author: '田中 健太',
       likes: 234,
       phase: '成長期',
+      outcome: '失敗体験',
       categories: ['マーケティング', '事業計画'],
       date: '2024-01-15',
       imageUrl: 'https://readdy.ai/api/search-image?query=Modern%20entrepreneur%20working%20on%20food%20startup%20business%20plan%20in%20bright%20office%20space%20with%20natural%20lighting%2C%20minimal%20desk%20setup%20with%20laptop%20and%20notebooks%2C%20warm%20orange%20accent%20colors%2C%20professional%20yet%20approachable%20atmosphere%2C%20high%20quality%20photography&width=400&height=250&seq=trending1&orientation=landscape'
@@ -25,6 +26,7 @@ export default function Home() {
       author: '佐藤 美咲',
       likes: 189,
       phase: '開始期',
+      outcome: '成功体験',
       categories: ['事業計画', '経理'],
       date: '2024-01-12',
       imageUrl: 'https://readdy.ai/api/search-image?query=Healthcare%20technology%20startup%20office%20environment%20with%20medical%20devices%20and%20computers%2C%20clean%20modern%20workspace%20with%20white%20and%20orange%20color%20scheme%2C%20professional%20female%20entrepreneur%20reviewing%20business%20documents%2C%20bright%20natural%20lighting&width=400&height=250&seq=trending2&orientation=landscape'
@@ -36,6 +38,7 @@ export default function Home() {
       author: '山田 雄介',
       likes: 156,
       phase: '直前・直後',
+      outcome: '成功体験',
       categories: ['開発', '営業'],
       date: '2024-01-10',
       imageUrl: 'https://readdy.ai/api/search-image?query=Fintech%20startup%20workspace%20with%20multiple%20monitors%20displaying%20financial%20data%20and%20apps%2C%20modern%20office%20with%20clean%20white%20walls%20and%20orange%20accent%20lighting%2C%20entrepreneur%20working%20on%20mobile%20app%20development%2C%20professional%20photography&width=400&height=250&seq=trending3&orientation=landscape'
@@ -47,6 +50,7 @@ export default function Home() {
       author: '鈴木 翔太',
       likes: 198,
       phase: '起業検討期',
+      outcome: 'その他',
       categories: ['事業計画', 'マーケティング'],
       date: '2024-01-08',
       imageUrl: 'https://readdy.ai/api/search-image?query=Educational%20technology%20startup%20office%20with%20whiteboards%20full%20of%20strategic%20planning%20diagrams%2C%20bright%20modern%20workspace%20with%20orange%20and%20white%20color%20scheme%2C%20entrepreneur%20presenting%20business%20strategy%2C%20clean%20professional%20environment&width=400&height=250&seq=trending4&orientation=landscape'
@@ -61,6 +65,7 @@ export default function Home() {
       author: '松本 裕子',
       likes: 87,
       phase: '成長期',
+      outcome: '成功体験',
       categories: ['開発', '事業計画'],
       date: '2024-01-20',
       imageUrl: 'https://readdy.ai/api/search-image?query=Agricultural%20technology%20startup%20with%20modern%20farming%20equipment%20and%20digital%20interfaces%2C%20clean%20high-tech%20greenhouse%20environment%20with%20green%20plants%20and%20orange%20accent%20lighting%2C%20female%20entrepreneur%20with%20tablet%20managing%20smart%20farming%20systems&width=400&height=250&seq=latest1&orientation=landscape'
@@ -72,6 +77,7 @@ export default function Home() {
       author: '高橋 慎一',
       likes: 143,
       phase: '開始期',
+      outcome: '成功体験',
       categories: ['開発', '営業'],
       date: '2024-01-18',
       imageUrl: 'https://readdy.ai/api/search-image?query=Insurance%20technology%20startup%20office%20with%20AI%20interface%20displays%20and%20customer%20service%20dashboards%2C%20modern%20professional%20workspace%20with%20white%20and%20orange%20design%20elements%2C%20entrepreneur%20working%20with%20advanced%20technology%20systems&width=400&height=250&seq=latest2&orientation=landscape'
@@ -83,6 +89,7 @@ export default function Home() {
       author: '小林 真理',
       likes: 92,
       phase: '直前・直後',
+      outcome: 'その他',
       categories: ['事業計画', '経理'],
       date: '2024-01-16',
       imageUrl: 'https://readdy.ai/api/search-image?query=Biotech%20startup%20laboratory%20with%20modern%20research%20equipment%20and%20clean%20white%20environment%2C%20female%20scientist%20entrepreneur%20working%20with%20advanced%20medical%20technology%2C%20bright%20lighting%20with%20subtle%20orange%20accents%2C%20professional%20scientific%20atmosphere&width=400&height=250&seq=latest3&orientation=landscape'
@@ -94,6 +101,7 @@ export default function Home() {
       author: '森田 大輔',
       likes: 76,
       phase: '起業検討期',
+      outcome: '成功体験',
       categories: ['マーケティング', '営業'],
       date: '2024-01-14',
       imageUrl: 'https://readdy.ai/api/search-image?query=E-commerce%20startup%20office%20with%20multiple%20screens%20showing%20online%20retail%20platforms%20and%20analytics%2C%20modern%20workspace%20with%20clean%20white%20walls%20and%20warm%20orange%20lighting%2C%20entrepreneur%20managing%20omnichannel%20retail%20strategy&width=400&height=250&seq=latest4&orientation=landscape'
@@ -108,6 +116,7 @@ export default function Home() {
       author: '渡辺 亮太',
       likes: 312,
       phase: '成長期',
+      outcome: '成功体験',
       categories: ['営業', 'マーケティング'],
       date: '2024-01-05',
       imageUrl: 'https://readdy.ai/api/search-image?query=SaaS%20startup%20office%20with%20modern%20technology%20displays%20and%20business%20dashboards%2C%20professional%20entrepreneur%20presenting%20to%20team%2C%20clean%20minimalist%20workspace%20with%20white%20walls%20and%20orange%20accent%20colors%2C%20high-end%20business%20environment&width=400&height=250&seq=popular1&orientation=landscape'
@@ -119,6 +128,7 @@ export default function Home() {
       author: '中村 優花',
       likes: 287,
       phase: '開始期',
+      outcome: '成功体験',
       categories: ['事業計画', '経理'],
       date: '2024-01-03',
       imageUrl: 'https://readdy.ai/api/search-image?query=Renewable%20energy%20startup%20office%20with%20solar%20panel%20displays%20and%20sustainable%20technology%2C%20modern%20eco-friendly%20workspace%20with%20natural%20lighting%20and%20orange%20accent%20elements%2C%20female%20entrepreneur%20working%20on%20green%20energy%20solutions&width=400&height=250&seq=popular2&orientation=landscape'
@@ -130,6 +140,7 @@ export default function Home() {
       author: '加藤 直樹',
       likes: 265,
       phase: '成長期',
+      outcome: '成功体験',
       categories: ['開発', '営業'],
       date: '2024-01-01',
       imageUrl: 'https://readdy.ai/api/search-image?query=Finance%20technology%20startup%20with%20investment%20analysis%20displays%20and%20customer%20consultation%20areas%2C%20modern%20professional%20office%20with%20clean%20white%20design%20and%20warm%20orange%20lighting%2C%20entrepreneur%20working%20with%20financial%20planning%20software&width=400&height=250&seq=popular3&orientation=landscape'
@@ -141,6 +152,7 @@ export default function Home() {
       author: '井上 沙織',
       likes: 243,
       phase: '直前・直後',
+      outcome: '成功体験',
       categories: ['マーケティング', '開発'],
       date: '2023-12-28',
       imageUrl: 'https://readdy.ai/api/search-image?query=Marketing%20technology%20startup%20with%20digital%20advertising%20dashboards%20and%20analytics%20displays%2C%20creative%20modern%20workspace%20with%20white%20walls%20and%20vibrant%20orange%20accents%2C%20female%20entrepreneur%20analyzing%20marketing%20data%20on%20multiple%20screens&width=400&height=250&seq=popular4&orientation=landscape'
