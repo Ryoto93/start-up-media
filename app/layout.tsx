@@ -5,24 +5,20 @@ import { Suspense } from "react";
 import "./globals.css";
 import GoogleAnalytics from "@/components/GoogleAnalytics";
 import { PageTrackingProvider } from "@/components/PageTrackingProvider";
+import { AuthProvider } from "@/lib/auth/AuthProvider";
 
 const pacifico = Pacifico({
-  weight: '400',
-  subsets: ['latin'],
-  display: 'swap',
-  variable: '--font-pacifico',
-})
+  weight: "400",
+  subsets: ["latin"],
+  variable: "--font-pacifico",
+});
 
 export const metadata: Metadata = {
   title: "起業ストーリーズ",
   description: "大手企業出身者の起業体験談を共有するメディアサイト",
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+export default function RootLayout({ children }: Readonly<{ children: React.ReactNode; }>) {
   return (
     <html lang="ja" suppressHydrationWarning={true}>
       <head>
@@ -36,11 +32,13 @@ export default function RootLayout({
         style={{ fontFamily: "'TBUDゴシック Std SL', sans-serif" }}
       >
         <GoogleAnalytics />
-        <Suspense fallback={null}>
-          <PageTrackingProvider>
-            {children}
-          </PageTrackingProvider>
-        </Suspense>
+        <AuthProvider>
+          <Suspense fallback={null}>
+            <PageTrackingProvider>
+              {children}
+            </PageTrackingProvider>
+          </Suspense>
+        </AuthProvider>
       </body>
     </html>
   );
