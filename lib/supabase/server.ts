@@ -33,4 +33,25 @@ export function createServer() {
       },
     }
   )
+}
+
+// For SSG/build-time usage where request cookies() is unavailable
+export function createStaticClient() {
+  return createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        get() {
+          return undefined
+        },
+        set() {
+          // no-op during build
+        },
+        remove() {
+          // no-op during build
+        },
+      },
+    }
+  )
 } 

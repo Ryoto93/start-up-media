@@ -1,5 +1,5 @@
 import { Article } from '@/types';
-import { createServer } from '@/lib/supabase/server';
+import { createStaticClient } from '@/lib/supabase/server';
 
 // 記事データの集約（モックデータ: 将来的な削除候補。現在は保持のみ）
 const allArticles: Article[] = [
@@ -504,12 +504,24 @@ function mapRowToArticle(row: ArticleRow, profile?: { full_name: string | null; 
 // 全記事を取得する関数（Supabase）
 export async function getAllArticles(): Promise<Article[]> {
   try {
-    const supabase = createServer();
+    // Articles are public; avoid cookies during SSG/SSR
+    const supabase = createStaticClient();
 
-    const { data: articles, error } = await supabase
+    // まず actual_event_date でのソートを試みる
+    let { data: articles, error } = await supabase
       .from('articles')
       .select('*')
       .order('actual_event_date', { ascending: false });
+
+    // カラムが存在しない場合は date でフォールバック
+    if (error && /does not exist/i.test(error.message)) {
+      const fallback = await supabase
+        .from('articles')
+        .select('*')
+        .order('date', { ascending: false });
+      articles = fallback.data as any;
+      error = fallback.error as any;
+    }
 
     if (error) {
       console.error('Failed to fetch articles:', error.message);
@@ -551,7 +563,8 @@ export async function getAllArticles(): Promise<Article[]> {
 // 指定されたIDの記事を取得する関数（Supabase）
 export async function getArticleById(id: string): Promise<Article | null> {
   try {
-    const supabase = createServer();
+    // Public read
+    const supabase = createStaticClient();
 
     const { data: row, error } = await supabase
       .from('articles')
@@ -589,7 +602,8 @@ export async function getArticleById(id: string): Promise<Article | null> {
 // 記事ID一覧を取得する関数（静的生成用, Supabase）
 export async function getAllArticleIds() {
   try {
-    const supabase = createServer();
+    // Use a static client in SSG context to avoid cookies() requirement
+    const supabase = createStaticClient();
     const { data, error } = await supabase
       .from('articles')
       .select('id');

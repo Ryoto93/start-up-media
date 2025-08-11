@@ -4,7 +4,6 @@ import { createContext, useContext, useEffect, useState, ReactNode } from 'react
 import { User } from '@supabase/supabase-js'
 import { useRouter, usePathname } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { getProfile } from '@/lib/data/profiles'
 
 interface AuthContextType {
   user: User | null
@@ -42,7 +41,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
     // 認証状態の変化を監視
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      async (_event, session) => {
         setUser(session?.user ?? null)
         setLoading(false)
       }
@@ -52,27 +51,32 @@ export function AuthProvider({ children }: AuthProviderProps) {
     return () => subscription.unsubscribe()
   }, [supabase.auth])
 
-  // プロフィール存在チェックとリダイレクト処理
+  // プロフィール存在チェックとリダイレクト処理（クライアントサイドのSupabaseで実行）
   useEffect(() => {
     const checkProfile = async () => {
-      // userが確定し、loadingがfalseで、userがnullではない場合のみ実行
       if (!loading && user && pathname !== '/account-setup') {
         try {
-          const profile = await getProfile()
-          // プロフィールが存在しない場合、account-setupページにリダイレクト
-          if (!profile) {
+          const { data, error } = await supabase
+            .from('profiles')
+            .select('id')
+            .eq('id', user.id)
+            .maybeSingle()
+          if (error) {
+            // 存在しない場合はerrorがnullでdataがnullになることもあるため、両方をチェック
+            console.warn('プロフィール取得時の警告:', error.message)
+          }
+          if (!data) {
             router.push('/account-setup')
           }
         } catch (error) {
           console.error('プロフィールチェックエラー:', error)
-          // エラーが発生した場合も、安全のためaccount-setupページにリダイレクト
           router.push('/account-setup')
         }
       }
     }
 
     checkProfile()
-  }, [user, loading, pathname, router])
+  }, [user, loading, pathname, router, supabase])
 
   const value = {
     user,
