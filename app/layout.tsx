@@ -1,6 +1,7 @@
 
 import type { Metadata } from "next";
 import { Pacifico } from "next/font/google";
+import { Suspense } from "react";
 import "./globals.css";
 import GoogleAnalytics from "@/components/GoogleAnalytics";
 import { PageTrackingProvider } from "@/components/PageTrackingProvider";
@@ -35,9 +36,11 @@ export default function RootLayout({
         style={{ fontFamily: "'TBUDゴシック Std SL', sans-serif" }}
       >
         <GoogleAnalytics />
-        <PageTrackingProvider>
-          {children}
-        </PageTrackingProvider>
+        <Suspense fallback={null}>
+          <PageTrackingProvider>
+            {children}
+          </PageTrackingProvider>
+        </Suspense>
       </body>
     </html>
   );

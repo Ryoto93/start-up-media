@@ -17,7 +17,8 @@ export default function Home() {
       outcome: '失敗体験',
       categories: ['マーケティング', '事業計画'],
       date: '2024-01-15',
-      imageUrl: 'https://readdy.ai/api/search-image?query=Modern%20entrepreneur%20working%20on%20food%20startup%20business%20plan%20in%20bright%20office%20space%20with%20natural%20lighting%2C%20minimal%20desk%20setup%20with%20laptop%20and%20notebooks%2C%20warm%20orange%20accent%20colors%2C%20professional%20yet%20approachable%20atmosphere%2C%20high%20quality%20photography&width=400&height=250&seq=trending1&orientation=landscape'
+      imageUrl: 'https://readdy.ai/api/search-image?query=Modern%20entrepreneur%20working%20on%20food%20startup%20business%20plan%20in%20bright%20office%20space%20with%20natural%20lighting%2C%20minimal%20desk%20setup%20with%20laptop%20and%20notebooks%2C%20warm%20orange%20accent%20colors%2C%20professional%20yet%20approachable%20atmosphere%2C%20high%20quality%20photography&width=400&height=250&seq=trending1&orientation=landscape',
+      eventDate: '2023-08-15'
     },
     {
       id: '2',
@@ -29,7 +30,8 @@ export default function Home() {
       outcome: '成功体験',
       categories: ['事業計画', '経理'],
       date: '2024-01-12',
-      imageUrl: 'https://readdy.ai/api/search-image?query=Healthcare%20technology%20startup%20office%20environment%20with%20medical%20devices%20and%20computers%2C%20clean%20modern%20workspace%20with%20white%20and%20orange%20color%20scheme%2C%20professional%20female%20entrepreneur%20reviewing%20business%20documents%2C%20bright%20natural%20lighting&width=400&height=250&seq=trending2&orientation=landscape'
+      imageUrl: 'https://readdy.ai/api/search-image?query=Healthcare%20technology%20startup%20office%20environment%20with%20medical%20devices%20and%20computers%2C%20clean%20modern%20workspace%20with%20white%20and%20orange%20color%20scheme%2C%20professional%20female%20entrepreneur%20reviewing%20business%20documents%2C%20bright%20natural%20lighting&width=400&height=250&seq=trending2&orientation=landscape',
+      eventDate: '2023-09-20'
     },
     {
       id: '3',
@@ -41,7 +43,8 @@ export default function Home() {
       outcome: '成功体験',
       categories: ['開発', '営業'],
       date: '2024-01-10',
-      imageUrl: 'https://readdy.ai/api/search-image?query=Fintech%20startup%20workspace%20with%20multiple%20monitors%20displaying%20financial%20data%20and%20apps%2C%20modern%20office%20with%20clean%20white%20walls%20and%20orange%20accent%20lighting%2C%20entrepreneur%20working%20on%20mobile%20app%20development%2C%20professional%20photography&width=400&height=250&seq=trending3&orientation=landscape'
+      imageUrl: 'https://readdy.ai/api/search-image?query=Fintech%20startup%20workspace%20with%20multiple%20monitors%20displaying%20financial%20data%20and%20apps%2C%20modern%20office%20with%20clean%20white%20walls%20and%20orange%20accent%20lighting%2C%20entrepreneur%20working%20on%20mobile%20app%20development%2C%20professional%20photography&width=400&height=250&seq=trending3&orientation=landscape',
+      eventDate: '2023-11-10'
     },
     {
       id: '4',
@@ -53,7 +56,8 @@ export default function Home() {
       outcome: 'その他',
       categories: ['事業計画', 'マーケティング'],
       date: '2024-01-08',
-      imageUrl: 'https://readdy.ai/api/search-image?query=Educational%20technology%20startup%20office%20with%20whiteboards%20full%20of%20strategic%20planning%20diagrams%2C%20bright%20modern%20workspace%20with%20orange%20and%20white%20color%20scheme%2C%20entrepreneur%20presenting%20business%20strategy%2C%20clean%20professional%20environment&width=400&height=250&seq=trending4&orientation=landscape'
+      imageUrl: 'https://readdy.ai/api/search-image?query=Educational%20technology%20startup%20office%20with%20whiteboards%20full%20of%20strategic%20planning%20diagrams%2C%20bright%20modern%20workspace%20with%20orange%20and%20white%20color%20scheme%2C%20entrepreneur%20presenting%20business%20strategy%2C%20clean%20professional%20environment&width=400&height=250&seq=trending4&orientation=landscape',
+      eventDate: '2023-07-25'
     }
   ];
 
@@ -68,7 +72,8 @@ export default function Home() {
       outcome: '成功体験',
       categories: ['開発', '事業計画'],
       date: '2024-01-20',
-      imageUrl: 'https://readdy.ai/api/search-image?query=Agricultural%20technology%20startup%20with%20modern%20farming%20equipment%20and%20digital%20interfaces%2C%20clean%20high-tech%20greenhouse%20environment%20with%20green%20plants%20and%20orange%20accent%20lighting%2C%20female%20entrepreneur%20with%20tablet%20managing%20smart%20farming%20systems&width=400&height=250&seq=latest1&orientation=landscape'
+      imageUrl: 'https://readdy.ai/api/search-image?query=Agricultural%20technology%20startup%20with%20modern%20farming%20equipment%20and%20digital%20interfaces%2C%20clean%20high-tech%20greenhouse%20environment%20with%20green%20plants%20and%20orange%20accent%20lighting%2C%20female%20entrepreneur%20with%20tablet%20managing%20smart%20farming%20systems&width=400&height=250&seq=latest1&orientation=landscape',
+      eventDate: '2023-06-12'
     },
     {
       id: '6',
@@ -80,7 +85,8 @@ export default function Home() {
       outcome: '成功体験',
       categories: ['開発', '営業'],
       date: '2024-01-18',
-      imageUrl: 'https://readdy.ai/api/search-image?query=Insurance%20technology%20startup%20office%20with%20AI%20interface%20displays%20and%20customer%20service%20dashboards%2C%20modern%20professional%20workspace%20with%20white%20and%20orange%20design%20elements%2C%20entrepreneur%20working%20with%20advanced%20technology%20systems&width=400&height=250&seq=latest2&orientation=landscape'
+      imageUrl: 'https://readdy.ai/api/search-image?query=Insurance%20technology%20startup%20office%20with%20AI%20interface%20displays%20and%20customer%20service%20dashboards%2C%20modern%20professional%20workspace%20with%20white%20and%20orange%20design%20elements%2C%20entrepreneur%20working%20with%20advanced%20technology%20systems&width=400&height=250&seq=latest2&orientation=landscape',
+      eventDate: '2023-10-05'
     },
     {
       id: '7',
@@ -92,7 +98,8 @@ export default function Home() {
       outcome: 'その他',
       categories: ['事業計画', '経理'],
       date: '2024-01-16',
-      imageUrl: 'https://readdy.ai/api/search-image?query=Biotech%20startup%20laboratory%20with%20modern%20research%20equipment%20and%20clean%20white%20environment%2C%20female%20scientist%20entrepreneur%20working%20with%20advanced%20medical%20technology%2C%20bright%20lighting%20with%20subtle%20orange%20accents%2C%20professional%20scientific%20atmosphere&width=400&height=250&seq=latest3&orientation=landscape'
+      imageUrl: 'https://readdy.ai/api/search-image?query=Biotech%20startup%20laboratory%20with%20modern%20research%20equipment%20and%20clean%20white%20environment%2C%20female%20scientist%20entrepreneur%20working%20with%20advanced%20medical%20technology%2C%20bright%20lighting%20with%20subtle%20orange%20accents%2C%20professional%20scientific%20atmosphere&width=400&height=250&seq=latest3&orientation=landscape',
+      eventDate: '2023-09-30'
     },
     {
       id: '8',
@@ -101,10 +108,11 @@ export default function Home() {
       author: '森田 大輔',
       likes: 76,
       phase: '起業検討期',
-      outcome: '成功体験',
+      outcome: '失敗体験',
       categories: ['マーケティング', '営業'],
       date: '2024-01-14',
-      imageUrl: 'https://readdy.ai/api/search-image?query=E-commerce%20startup%20office%20with%20multiple%20screens%20showing%20online%20retail%20platforms%20and%20analytics%2C%20modern%20workspace%20with%20clean%20white%20walls%20and%20warm%20orange%20lighting%2C%20entrepreneur%20managing%20omnichannel%20retail%20strategy&width=400&height=250&seq=latest4&orientation=landscape'
+      imageUrl: 'https://readdy.ai/api/search-image?query=E-commerce%20startup%20office%20with%20digital%20displays%20showing%20online%20shopping%20interfaces%2C%20modern%20workspace%20with%20white%20and%20orange%20design%20elements%2C%20entrepreneur%20managing%20omnichannel%20retail%20strategy%2C%20clean%20professional%20environment&width=400&height=250&seq=latest4&orientation=landscape',
+      eventDate: '2023-12-01'
     }
   ];
 
@@ -119,7 +127,8 @@ export default function Home() {
       outcome: '成功体験',
       categories: ['営業', 'マーケティング'],
       date: '2024-01-05',
-      imageUrl: 'https://readdy.ai/api/search-image?query=SaaS%20startup%20office%20with%20modern%20technology%20displays%20and%20business%20dashboards%2C%20professional%20entrepreneur%20presenting%20to%20team%2C%20clean%20minimalist%20workspace%20with%20white%20walls%20and%20orange%20accent%20colors%2C%20high-end%20business%20environment&width=400&height=250&seq=popular1&orientation=landscape'
+      imageUrl: 'https://readdy.ai/api/search-image?query=SaaS%20startup%20office%20with%20B2B%20sales%20dashboards%20and%20customer%20analytics%20displays%2C%20modern%20professional%20workspace%20with%20white%20and%20orange%20design%20elements%2C%20entrepreneur%20working%20with%20business%20software%20platforms%2C%20clean%20corporate%20atmosphere&width=400&height=250&seq=popular1&orientation=landscape',
+      eventDate: '2023-05-18'
     },
     {
       id: '10',
@@ -131,7 +140,8 @@ export default function Home() {
       outcome: '成功体験',
       categories: ['事業計画', '経理'],
       date: '2024-01-03',
-      imageUrl: 'https://readdy.ai/api/search-image?query=Renewable%20energy%20startup%20office%20with%20solar%20panel%20displays%20and%20sustainable%20technology%2C%20modern%20eco-friendly%20workspace%20with%20natural%20lighting%20and%20orange%20accent%20elements%2C%20female%20entrepreneur%20working%20on%20green%20energy%20solutions&width=400&height=250&seq=popular2&orientation=landscape'
+      imageUrl: 'https://readdy.ai/api/search-image?query=Renewable%20energy%20startup%20with%20solar%20panel%20technology%20and%20sustainability%20dashboards%2C%20modern%20green%20office%20environment%20with%20white%20and%20orange%20design%20elements%2C%20female%20entrepreneur%20managing%20ESG%20investment%20strategies%2C%20clean%20eco-friendly%20atmosphere&width=400&height=250&seq=popular2&orientation=landscape',
+      eventDate: '2023-08-22'
     },
     {
       id: '11',
@@ -140,10 +150,11 @@ export default function Home() {
       author: '加藤 直樹',
       likes: 265,
       phase: '成長期',
-      outcome: '成功体験',
+      outcome: 'その他',
       categories: ['開発', '営業'],
       date: '2024-01-01',
-      imageUrl: 'https://readdy.ai/api/search-image?query=Finance%20technology%20startup%20with%20investment%20analysis%20displays%20and%20customer%20consultation%20areas%2C%20modern%20professional%20office%20with%20clean%20white%20design%20and%20warm%20orange%20lighting%2C%20entrepreneur%20working%20with%20financial%20planning%20software&width=400&height=250&seq=popular3&orientation=landscape'
+      imageUrl: 'https://readdy.ai/api/search-image?query=Financial%20planning%20startup%20with%20AI-powered%20investment%20advisory%20interfaces%2C%20modern%20professional%20office%20with%20white%20and%20orange%20design%20elements%2C%20entrepreneur%20working%20with%20personalized%20wealth%20management%20systems%2C%20clean%20corporate%20atmosphere&width=400&height=250&seq=popular3&orientation=landscape',
+      eventDate: '2023-04-10'
     },
     {
       id: '12',
@@ -152,10 +163,11 @@ export default function Home() {
       author: '井上 沙織',
       likes: 243,
       phase: '直前・直後',
-      outcome: '成功体験',
+      outcome: '失敗体験',
       categories: ['マーケティング', '開発'],
       date: '2023-12-28',
-      imageUrl: 'https://readdy.ai/api/search-image?query=Marketing%20technology%20startup%20with%20digital%20advertising%20dashboards%20and%20analytics%20displays%2C%20creative%20modern%20workspace%20with%20white%20walls%20and%20vibrant%20orange%20accents%2C%20female%20entrepreneur%20analyzing%20marketing%20data%20on%20multiple%20screens&width=400&height=250&seq=popular4&orientation=landscape'
+      imageUrl: 'https://readdy.ai/api/search-image?query=Marketing%20technology%20startup%20with%20AI-driven%20advertising%20platforms%20and%20data%20analytics%20dashboards%2C%20modern%20professional%20office%20with%20white%20and%20orange%20design%20elements%2C%20female%20entrepreneur%20managing%20programmatic%20advertising%20campaigns%2C%20clean%20corporate%20atmosphere&width=400&height=250&seq=popular4&orientation=landscape',
+      eventDate: '2023-11-15'
     }
   ];
 

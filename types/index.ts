@@ -46,6 +46,8 @@ export interface ArticleCardProps {
   outcome: string;
   categories: string[];
   date: string;
+  imageUrl: string;
+  eventDate: string;
 }
 
 // フェーズの型定義
