@@ -2,7 +2,9 @@
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react'
 import { User } from '@supabase/supabase-js'
+import { useRouter, usePathname } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { getProfile } from '@/lib/data/profiles'
 
 interface AuthContextType {
   user: User | null
@@ -18,6 +20,8 @@ interface AuthProviderProps {
 export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
+  const router = useRouter()
+  const pathname = usePathname()
   const supabase = createClient()
 
   useEffect(() => {
@@ -47,6 +51,28 @@ export function AuthProvider({ children }: AuthProviderProps) {
     // クリーンアップ
     return () => subscription.unsubscribe()
   }, [supabase.auth])
+
+  // プロフィール存在チェックとリダイレクト処理
+  useEffect(() => {
+    const checkProfile = async () => {
+      // userが確定し、loadingがfalseで、userがnullではない場合のみ実行
+      if (!loading && user && pathname !== '/account-setup') {
+        try {
+          const profile = await getProfile()
+          // プロフィールが存在しない場合、account-setupページにリダイレクト
+          if (!profile) {
+            router.push('/account-setup')
+          }
+        } catch (error) {
+          console.error('プロフィールチェックエラー:', error)
+          // エラーが発生した場合も、安全のためaccount-setupページにリダイレクト
+          router.push('/account-setup')
+        }
+      }
+    }
+
+    checkProfile()
+  }, [user, loading, pathname, router])
 
   const value = {
     user,
