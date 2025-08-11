@@ -471,6 +471,11 @@ export async function getArticleById(id: string): Promise<Article | null> {
   return article || null;
 }
 
+// 記事ID一覧を取得する関数（静的生成用）
+export async function getAllArticleIds() {
+  return Promise.resolve(allArticles.map(article => ({ id: article.id })));
+}
+
 // 記事の検索・フィルタリング・ソートを行う関数
 export async function searchArticles(filters: {
   phase?: string;
@@ -506,14 +511,14 @@ export async function searchArticles(filters: {
 
   switch (filters.sortBy) {
     case 'popular':
-      filtered.sort((a, b) => b.likes - a.likes);
+      filtered = [...filtered].sort((a, b) => b.likes - a.likes);
       break;
     case 'date':
-      filtered.sort((a, b) => new Date(b.eventDate).getTime() - new Date(a.eventDate).getTime());
+      filtered = [...filtered].sort((a, b) => new Date(b.eventDate).getTime() - new Date(a.eventDate).getTime());
       break;
     case 'newest':
     default:
-      filtered.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+      filtered = [...filtered].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
       break;
   }
 
