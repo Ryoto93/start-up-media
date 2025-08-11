@@ -3,11 +3,22 @@
 
 import Link from 'next/link';
 import Header from '../../components/Header';
+import { createClient } from '@/lib/supabase/client';
 
 export default function LoginPage() {
-  const handleGoogleLogin = () => {
-    // ここでGoogle認証処理を実装予定
-    console.log('Google認証でログイン');
+  const handleGoogleLogin = async () => {
+    const supabase = createClient();
+    const redirectTo = `${window.location.origin}/auth/callback`;
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo,
+      },
+    });
+    if (error) {
+      console.error('Google OAuth sign-in failed:', error.message);
+      alert('ログインに失敗しました。時間をおいて再度お試しください。');
+    }
   };
 
   return (

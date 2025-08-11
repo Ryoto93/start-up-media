@@ -45,14 +45,16 @@ export interface Database {
           title: string;
           summary: string;
           content: string;
-          author: string;
+          author: string; // optional legacy field; prefer author_id + join
+          author_id: string | null;
           likes: number;
           phase: string;
           outcome: string;
           categories: string[];
-          date: string;
+          date: string; // published date
+          event_date: string | null; // legacy
+          actual_event_date: string | null; // sort key
           image_url: string | null;
-          event_date: string | null;
           created_at: string;
           updated_at: string | null;
         };
@@ -61,14 +63,16 @@ export interface Database {
           title: string;
           summary: string;
           content: string;
-          author: string;
+          author?: string;
+          author_id?: string | null;
           likes?: number;
           phase: string;
           outcome: string;
           categories: string[];
           date: string;
-          image_url?: string | null;
           event_date?: string | null;
+          actual_event_date?: string | null;
+          image_url?: string | null;
           created_at?: string;
           updated_at?: string | null;
         };
@@ -78,13 +82,15 @@ export interface Database {
           summary?: string;
           content?: string;
           author?: string;
+          author_id?: string | null;
           likes?: number;
           phase?: string;
           outcome?: string;
           categories?: string[];
           date?: string;
-          image_url?: string | null;
           event_date?: string | null;
+          actual_event_date?: string | null;
+          image_url?: string | null;
           created_at?: string;
           updated_at?: string | null;
         };

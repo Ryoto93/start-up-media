@@ -1,6 +1,7 @@
 import { Article } from '@/types';
+import { createServer } from '@/lib/supabase/server';
 
-// 記事データの集約
+// 記事データの集約（モックデータ: 将来的な削除候補。現在は保持のみ）
 const allArticles: Article[] = [
   {
     id: '1',
@@ -456,27 +457,156 @@ ESG投資が注目される中で、持続可能なエネルギー事業を展�
   }
 ];
 
-// 全記事を取得する関数
+type ArticleRow = {
+  id: string;
+  title: string;
+  summary: string;
+  content: string;
+  author: string | null;
+  author_id: string | null;
+  likes: number | null;
+  phase: string;
+  outcome: string;
+  categories: string[];
+  date: string;
+  event_date: string | null;
+  actual_event_date: string | null;
+  image_url: string | null;
+};
+
+function mapRowToArticle(row: ArticleRow, profile?: { full_name: string | null; avatar_url: string | null }): Article {
+  const authorName = profile?.full_name ?? row.author ?? '匿名';
+  return {
+    id: row.id,
+    title: row.title,
+    summary: row.summary,
+    content: row.content,
+    author: authorName,
+    likes: row.likes ?? 0,
+    phase: row.phase,
+    outcome: row.outcome,
+    categories: row.categories ?? [],
+    date: row.date,
+    imageUrl: row.image_url ?? '',
+    eventDate: row.actual_event_date ?? row.event_date ?? row.date,
+    authorProfile: {
+      name: authorName,
+      age: 0,
+      career: '',
+      bio: '',
+      avatar: profile?.avatar_url ?? '',
+      entrepreneurshipStartDate: row.actual_event_date ?? row.event_date ?? '',
+      entrepreneurshipConsiderationStartDate: '',
+    },
+  };
+}
+
+// 全記事を取得する関数（Supabase）
 export async function getAllArticles(): Promise<Article[]> {
-  // 将来的にSupabaseなどのデータベースから取得する際の準備
-  // 現在は静的なデータを返す
-  return allArticles;
+  try {
+    const supabase = createServer();
+
+    const { data: articles, error } = await supabase
+      .from('articles')
+      .select('*')
+      .order('actual_event_date', { ascending: false });
+
+    if (error) {
+      console.error('Failed to fetch articles:', error.message);
+      return [];
+    }
+
+    if (!articles || articles.length === 0) {
+      return [];
+    }
+
+    // プロファイルをまとめて取得して擬似JOIN
+    const authorIds = Array.from(
+      new Set((articles as ArticleRow[]).map((a) => a.author_id).filter((v): v is string => !!v))
+    );
+
+    let profilesMap = new Map<string, { full_name: string | null; avatar_url: string | null }>();
+    if (authorIds.length > 0) {
+      const { data: profiles, error: profilesError } = await supabase
+        .from('profiles')
+        .select('id, full_name, avatar_url')
+        .in('id', authorIds);
+
+      if (profilesError) {
+        console.warn('Failed to fetch profiles:', profilesError.message);
+      } else if (profiles) {
+        profilesMap = new Map(profiles.map((p: any) => [p.id as string, { full_name: p.full_name, avatar_url: p.avatar_url }]));
+      }
+    }
+
+    return (articles as ArticleRow[]).map((row) =>
+      mapRowToArticle(row, row.author_id ? profilesMap.get(row.author_id) : undefined)
+    );
+  } catch (e) {
+    console.error('Unexpected error in getAllArticles:', e);
+    return [];
+  }
 }
 
-// 指定されたIDの記事を取得する関数
+// 指定されたIDの記事を取得する関数（Supabase）
 export async function getArticleById(id: string): Promise<Article | null> {
-  // 将来的にSupabaseなどのデータベースから取得する際の準備
-  // 現在は静的なデータから検索
-  const article = allArticles.find(article => article.id === id);
-  return article || null;
+  try {
+    const supabase = createServer();
+
+    const { data: row, error } = await supabase
+      .from('articles')
+      .select('*')
+      .eq('id', id)
+      .maybeSingle();
+
+    if (error) {
+      console.error('Failed to fetch article by id:', error.message);
+      return null;
+    }
+
+    if (!row) return null;
+
+    let profile: { full_name: string | null; avatar_url: string | null } | undefined = undefined;
+    const authorId = (row as ArticleRow).author_id;
+    if (authorId) {
+      const { data: p, error: pErr } = await supabase
+        .from('profiles')
+        .select('full_name, avatar_url')
+        .eq('id', authorId)
+        .maybeSingle();
+      if (!pErr && p) {
+        profile = { full_name: (p as any).full_name, avatar_url: (p as any).avatar_url };
+      }
+    }
+
+    return mapRowToArticle(row as ArticleRow, profile);
+  } catch (e) {
+    console.error('Unexpected error in getArticleById:', e);
+    return null;
+  }
 }
 
-// 記事ID一覧を取得する関数（静的生成用）
+// 記事ID一覧を取得する関数（静的生成用, Supabase）
 export async function getAllArticleIds() {
-  return Promise.resolve(allArticles.map(article => ({ id: article.id })));
+  try {
+    const supabase = createServer();
+    const { data, error } = await supabase
+      .from('articles')
+      .select('id');
+
+    if (error) {
+      console.error('Failed to fetch article ids:', error.message);
+      return [] as { id: string }[];
+    }
+
+    return (data ?? []).map((a: any) => ({ id: String(a.id) }));
+  } catch (e) {
+    console.error('Unexpected error in getAllArticleIds:', e);
+    return [] as { id: string }[];
+  }
 }
 
-// 記事の検索・フィルタリング・ソートを行う関数
+// 記事の検索・フィルタリング・ソート（モックデータでのローカル動作用）
 export async function searchArticles(filters: {
   phase?: string;
   outcome?: string;
