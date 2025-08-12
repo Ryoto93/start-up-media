@@ -503,6 +503,7 @@ function mapRowToArticle(row: ArticleRow, profile?: { full_name: string | null; 
       entrepreneurshipStartDate: row.actual_event_date ?? row.event_date ?? '',
       entrepreneurshipConsiderationStartDate: '',
     },
+    isPublished: row.is_published ?? null,
   };
 }
 
@@ -674,24 +675,25 @@ export async function searchArticles(filters: {
   return filtered;
 }
 
-// NEW: 特定のユーザーの投稿記事を取得（出来事日降順）
+// NEW: 特定のユーザーの投稿記事を取得（出来事日昇順）
 export async function getArticlesByAuthorId(authorId: string): Promise<Article[]> {
   try {
     const supabase = createStaticClient();
 
-    // try ordering by actual_event_date desc first
+    // event_date の昇順で取得（古い順）
     let { data: rows, error } = await supabase
       .from('articles')
       .select('*')
       .eq('author_id', authorId)
-      .order('actual_event_date', { ascending: false });
+      .order('event_date', { ascending: true });
 
+    // event_date カラムが存在しない場合は actual_event_date でフォールバック
     if (error && /does not exist/i.test(error.message)) {
       const fallback = await supabase
         .from('articles')
         .select('*')
         .eq('author_id', authorId)
-        .order('event_date', { ascending: false });
+        .order('actual_event_date', { ascending: true });
       rows = fallback.data as any;
       error = fallback.error as any;
     }

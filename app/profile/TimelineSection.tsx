@@ -1,18 +1,55 @@
 'use client';
 
 import type { Article } from '@/types';
+import Link from 'next/link';
+import { useMemo, useState } from 'react';
 
 interface TimelineSectionProps {
   userId: string
   articles: Article[]
 }
 
+type FilterKey = 'all' | 'published' | 'draft'
+
 export default function TimelineSection({ userId, articles }: TimelineSectionProps) {
-  const hasPostsForUser = articles && articles.length > 0
+  const [filter, setFilter] = useState<FilterKey>('all')
+
+  const filtered = useMemo(() => {
+    switch (filter) {
+      case 'published':
+        return articles.filter(a => a.isPublished === true)
+      case 'draft':
+        return articles.filter(a => a.isPublished === false)
+      default:
+        return articles
+    }
+  }, [articles, filter])
+
+  const hasPostsForUser = filtered && filtered.length > 0
 
   return (
     <div className="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-8">
-      <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-6 sm:mb-8">起業ストーリー タイムライン</h2>
+      <div className="flex items-center justify-between mb-4 sm:mb-6">
+        <h2 className="text-xl sm:text-2xl font-bold text-gray-900">起業ストーリー タイムライン</h2>
+        <div className="inline-flex rounded-full border border-gray-200 p-1 bg-gray-50">
+          {([
+            { key: 'all', label: '全て' },
+            { key: 'published', label: '公開中' },
+            { key: 'draft', label: '下書き' },
+          ] as { key: FilterKey; label: string }[]).map(tab => {
+            const active = filter === tab.key
+            return (
+              <button
+                key={tab.key}
+                onClick={() => setFilter(tab.key)}
+                className={`px-3 sm:px-4 py-1.5 text-xs sm:text-sm rounded-full transition-colors whitespace-nowrap cursor-pointer ${active ? 'bg-white text-orange-600 border border-orange-200 shadow-sm' : 'text-gray-600 hover:text-gray-800'}`}
+              >
+                {tab.label}
+              </button>
+            )
+          })}
+        </div>
+      </div>
 
       {!hasPostsForUser && (
         <div className="text-center py-12">
@@ -23,26 +60,88 @@ export default function TimelineSection({ userId, articles }: TimelineSectionPro
       )}
 
       {hasPostsForUser && (
-        <ol className="relative border-l border-gray-200 ml-3 sm:ml-6">
-          {articles.map((article) => (
-            <li key={article.id} className="mb-8 ml-4">
-              <div className="absolute -left-1.5 mt-1.5 w-3 h-3 bg-orange-400 rounded-full border border-white"></div>
-              <time className="mb-1 text-xs sm:text-sm font-normal leading-none text-gray-400">
-                {new Date(article.eventDate || article.date).toLocaleDateString('ja-JP')}
-              </time>
-              <h3 className="text-base sm:text-lg font-semibold text-gray-900 mt-1">{article.title}</h3>
-              {article.summary && (
-                <p className="mb-2 text-sm text-gray-600 whitespace-pre-wrap">{article.summary}</p>
-              )}
-              <div className="flex items-center gap-3 text-xs text-gray-500">
-                <span className="inline-flex items-center"><i className="ri-user-line mr-1"></i>{article.author}</span>
-                <span className="inline-flex items-center"><i className="ri-thumb-up-line mr-1"></i>{article.likes}</span>
-                <span className="inline-flex items-center"><i className="ri-rocket-line mr-1"></i>{article.phase}</span>
-                <span className="inline-flex items-center"><i className="ri-flag-line mr-1"></i>{article.outcome}</span>
-              </div>
-            </li>
-          ))}
-        </ol>
+        <div className="relative">
+          {/* Center vertical line */}
+          <div className="absolute left-16 top-0 bottom-0 w-px bg-gray-300" />
+
+          <div className="space-y-8">
+            {filtered.map((article) => {
+              const eventDate = new Date(article.eventDate || article.date);
+              const formattedDate = `${String(eventDate.getFullYear()).slice(2)}年${eventDate.getMonth() + 1}月${eventDate.getDate()}日`;
+              
+              return (
+                <div key={article.id} className="relative flex items-start">
+                  {/* Date on the left */}
+                  <div className="w-24 flex-shrink-0 text-right pr-4">
+                    <span className="text-sm font-medium text-gray-600">
+                      {formattedDate}
+                    </span>
+                  </div>
+
+                  {/* Orange circle indicator */}
+                  <div className="relative flex-shrink-0 w-4 h-4 bg-orange-500 rounded-full border-2 border-white shadow-lg z-10" />
+
+                  {/* Article card */}
+                  <div className="flex-1 ml-6">
+                    <div className="relative bg-white border border-gray-200 rounded-lg p-5 shadow-sm hover:shadow-md transition-shadow">
+                      {/* Top-right likes */}
+                      <div className="absolute right-5 top-5 flex items-center text-gray-500">
+                        <i className="ri-heart-line text-red-500 mr-1"></i>
+                        <span className="text-sm font-medium">{article.likes}</span>
+                      </div>
+
+                      {/* Main content */}
+                      <div className="pr-16">
+                        <h3 className="text-xl font-bold text-gray-900 mb-3">
+                          {article.title}
+                        </h3>
+
+                        {/* Tags */}
+                        <div className="flex flex-wrap gap-2 mb-3">
+                          {article.phase && (
+                            <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800 border border-orange-200">
+                              {article.phase}
+                            </span>
+                          )}
+                          {article.categories?.map((cat) => (
+                            <span key={cat} className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 border border-blue-200">
+                              {cat}
+                            </span>
+                          ))}
+                        </div>
+
+                        {/* Summary */}
+                        {article.summary && (
+                          <p className="text-sm text-gray-700 leading-relaxed mb-4">
+                            {article.summary}
+                          </p>
+                        )}
+                      </div>
+
+                      {/* Footer */}
+                      <div className="flex items-center justify-between mt-5 pt-4 border-t border-gray-100">
+                        {/* Left: Read article link */}
+                        <Link href={`/articles/${article.id}`} className="inline-flex items-center text-sm font-medium text-orange-600 hover:text-orange-700 transition-colors">
+                          記事を読む→
+                        </Link>
+
+                        {/* Right: Edit and Share icons */}
+                        <div className="flex items-center gap-3">
+                          <button type="button" className="text-gray-400 hover:text-gray-600 transition-colors">
+                            <i className="ri-edit-line text-lg"></i>
+                          </button>
+                          <button type="button" className="text-gray-400 hover:text-gray-600 transition-colors">
+                            <i className="ri-share-line text-lg"></i>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
       )}
     </div>
   )

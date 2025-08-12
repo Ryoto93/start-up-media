@@ -13,6 +13,7 @@ export interface Article {
   imageUrl: string;
   eventDate: string;
   authorProfile: AuthorProfile;
+  isPublished?: boolean | null;
 }
 
 // 著者プロフィールの型定義
