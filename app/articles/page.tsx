@@ -1,11 +1,11 @@
 
 import Header from '@/components/Header';
 import ArticlesClientPage from './ArticlesClientPage';
-import { getAllArticles } from '@/lib/data/articles';
+import { getAllPublishedArticles } from '@/lib/data/articles';
 
 export default async function ArticlesPage() {
   // Server Componentでデータを取得
-  const initialArticles = await getAllArticles();
+  const initialArticles = await getAllPublishedArticles();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-orange-50/30">

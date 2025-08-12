@@ -3,6 +3,7 @@ import ProfileHeader from './ProfileHeader'
 import TimelineSection from './TimelineSection'
 import { getProfileWithStats, updateProfileWithState } from '@/lib/data/profiles'
 import { redirect } from 'next/navigation'
+import { getArticlesByAuthorId } from '@/lib/data/articles'
 
 export const dynamic = 'force-dynamic'
 
@@ -29,6 +30,9 @@ export default async function ProfilePage() {
   const daysSinceEntrepreneurship = diffDaysLocal(profile.entrepreneurship_start_date)
   const daysSinceConsideration = diffDaysLocal(profile.consideration_start_date)
 
+  // Fetch authored articles for timeline
+  const authoredArticles = await getArticlesByAuthorId(profile.id)
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
@@ -43,7 +47,7 @@ export default async function ProfilePage() {
             daysSinceConsideration,
           }}
         />
-        <TimelineSection userId={profile.id} />
+        <TimelineSection userId={profile.id} articles={authoredArticles} />
       </main>
     </div>
   )

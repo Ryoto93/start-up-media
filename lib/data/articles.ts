@@ -472,17 +472,22 @@ type ArticleRow = {
   event_date: string | null;
   actual_event_date: string | null;
   image_url: string | null;
+  created_at?: string;
+  is_published?: boolean | null;
+  // likes_count カラムを併用（移行互換）
+  likes_count?: number | null;
 };
 
-function mapRowToArticle(row: ArticleRow, profile?: { full_name: string | null; avatar_url: string | null }): Article {
+function mapRowToArticle(row: ArticleRow, profile?: { full_name: string | null; avatar_url: string | null; username?: string | null }): Article {
   const authorName = profile?.full_name ?? row.author ?? '匿名';
+  const likesCount = (row as any).likes_count ?? row.likes ?? 0;
   return {
     id: row.id,
     title: row.title,
     summary: row.summary,
     content: row.content,
     author: authorName,
-    likes: row.likes ?? 0,
+    likes: typeof likesCount === 'number' ? likesCount : 0,
     phase: row.phase,
     outcome: row.outcome,
     categories: row.categories ?? [],
@@ -667,4 +672,99 @@ export async function searchArticles(filters: {
   }
 
   return filtered;
+}
+
+// NEW: 特定のユーザーの投稿記事を取得（出来事日降順）
+export async function getArticlesByAuthorId(authorId: string): Promise<Article[]> {
+  try {
+    const supabase = createStaticClient();
+
+    // try ordering by actual_event_date desc first
+    let { data: rows, error } = await supabase
+      .from('articles')
+      .select('*')
+      .eq('author_id', authorId)
+      .order('actual_event_date', { ascending: false });
+
+    if (error && /does not exist/i.test(error.message)) {
+      const fallback = await supabase
+        .from('articles')
+        .select('*')
+        .eq('author_id', authorId)
+        .order('event_date', { ascending: false });
+      rows = fallback.data as any;
+      error = fallback.error as any;
+    }
+
+    if (error) {
+      console.error('Failed to fetch articles by author:', error.message);
+      return [];
+    }
+
+    const articles = (rows ?? []) as ArticleRow[];
+    if (articles.length === 0) return [];
+
+    const authorIds = Array.from(new Set(articles.map(a => a.author_id).filter((v): v is string => !!v)));
+    let profilesMap = new Map<string, { full_name: string | null; avatar_url: string | null; username?: string | null }>();
+    if (authorIds.length > 0) {
+      const { data: profiles, error: pErr } = await supabase
+        .from('profiles')
+        .select('id, full_name, avatar_url, username')
+        .in('id', authorIds);
+      if (pErr) {
+        console.warn('Failed to fetch profiles for author join:', pErr.message);
+      } else if (profiles) {
+        profilesMap = new Map(
+          profiles.map((p: any) => [p.id as string, { full_name: p.full_name, avatar_url: p.avatar_url, username: p.username }])
+        );
+      }
+    }
+
+    return articles.map(row => mapRowToArticle(row, row.author_id ? profilesMap.get(row.author_id) : undefined));
+  } catch (e) {
+    console.error('Unexpected error in getArticlesByAuthorId:', e);
+    return [];
+  }
+}
+
+// NEW: 公開記事すべて（作成日降順）
+export async function getAllPublishedArticles(): Promise<Article[]> {
+  try {
+    const supabase = createStaticClient();
+
+    const { data: rows, error } = await supabase
+      .from('articles')
+      .select('*')
+      .eq('is_published', true)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Failed to fetch published articles:', error.message);
+      return [];
+    }
+
+    const articles = (rows ?? []) as ArticleRow[];
+    if (articles.length === 0) return [];
+
+    const authorIds = Array.from(new Set(articles.map(a => a.author_id).filter((v): v is string => !!v)));
+    let profilesMap = new Map<string, { full_name: string | null; avatar_url: string | null; username?: string | null }>();
+    if (authorIds.length > 0) {
+      const { data: profiles, error: pErr } = await supabase
+        .from('profiles')
+        .select('id, full_name, avatar_url, username')
+        .in('id', authorIds);
+      if (pErr) {
+        console.warn('Failed to fetch profiles for published join:', pErr.message);
+      } else if (profiles) {
+        profilesMap = new Map(
+          profiles.map((p: any) => [p.id as string, { full_name: p.full_name, avatar_url: p.avatar_url, username: p.username }])
+        );
+      }
+    }
+
+    return articles.map(row => mapRowToArticle(row, row.author_id ? profilesMap.get(row.author_id) : undefined));
+  } catch (e) {
+    console.error('Unexpected error in getAllPublishedArticles:', e);
+    return [];
+  }
 } 
