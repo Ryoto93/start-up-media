@@ -89,8 +89,7 @@ export async function getProfile(): Promise<Profile | null> {
 
 /**
  * プロフィール情報を更新するServer Action
- * @param formData フォームデータ
- * @returns 更新結果
+ * - 行がない場合は作成（upsert）
  */
 export async function updateProfile(formData: FormData): Promise<{ success: boolean; message: string }> {
   'use server'
@@ -98,14 +97,22 @@ export async function updateProfile(formData: FormData): Promise<{ success: bool
     const supabase = createServer();
     
     // 現在のセッションからユーザーIDを取得
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
-    
+    let userId: string | null = null;
+    const { data: userData, error: userError } = await supabase.auth.getUser();
+    if (userData?.user?.id) {
+      userId = userData.user.id;
+    } else {
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (sessionData?.session?.user?.id) {
+        userId = sessionData.session.user.id;
+      }
+    }
+
     if (userError) {
       console.error('ユーザー認証エラー:', userError.message);
-      return { success: false, message: '認証に失敗しました。再度ログインしてください。' };
     }
     
-    if (!user) {
+    if (!userId) {
       return { success: false, message: 'ログインしていません。' };
     }
     
@@ -130,28 +137,27 @@ export async function updateProfile(formData: FormData): Promise<{ success: bool
       return { success: false, message: 'ユーザー名は3文字以上で入力してください。' };
     }
     
-    // プロフィール更新（スキーマ準拠）
-    const { error: updateError } = await supabase
+    // プロフィールを作成または更新（スキーマ準拠）
+    const { error: upsertError } = await supabase
       .from('profiles')
-      .update({
+      .upsert({
+        id: userId,
         full_name,
         username,
         career,
         bio,
         consideration_start_date,
         entrepreneurship_start_date,
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', user.id);
-    
-    if (updateError) {
-      console.error('プロフィール更新エラー:', updateError.message);
-      
+        updated_at: new Date().toISOString(),
+        // created_at は DB のデフォルトを使用
+      }, { onConflict: 'id' })
+
+    if (upsertError) {
+      console.error('プロフィール更新エラー:', upsertError.message);
       // 一意制約エラーの場合
-      if (updateError.code === '23505' && updateError.message.includes('username')) {
+      if (upsertError.code === '23505' && upsertError.message.includes('username')) {
         return { success: false, message: 'そのユーザー名は既に使用されています。別のユーザー名をお試しください。' };
       }
-      
       return { success: false, message: 'プロフィールの更新に失敗しました。時間をおいて再度お試しください。' };
     }
     

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import type { Profile } from '@/lib/data/profiles';
 import { useFormState } from 'react-dom';
@@ -12,8 +12,6 @@ interface ProfileHeaderProps {
 
 export default function ProfileHeader({ profile, serverAction }: ProfileHeaderProps) {
   const [isEditing, setIsEditing] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   const [formData, setFormData] = useState({
     full_name: profile.full_name || '',
@@ -29,18 +27,6 @@ export default function ProfileHeader({ profile, serverAction }: ProfileHeaderPr
     serverAction ?? (async () => ({ success: false, message: '' })),
     { success: false, message: '' }
   );
-
-  useEffect(() => {
-    if (!serverAction) return;
-    if (saState.message) {
-      setMessage({ type: saState.success ? 'success' : 'error', text: saState.message });
-      if (saState.success) {
-        setIsEditing(false);
-        setTimeout(() => window.location.reload(), 800);
-      }
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [saState.success, saState.message, serverAction]);
 
   const displayName = profile.full_name ?? '未設定の名前';
   const username = profile.username;
@@ -66,55 +52,6 @@ export default function ProfileHeader({ profile, serverAction }: ProfileHeaderPr
       });
     }
     setIsEditing(!isEditing);
-    setMessage(null);
-  };
-
-  // フォームのEnterキーでの送信を、編集中以外は防止
-  const preventSubmitIfNotEditing = (e: React.FormEvent<HTMLFormElement>) => {
-    if (!isEditing) {
-      e.preventDefault();
-    }
-  };
-
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    if (serverAction) return; // Server Action利用時はブラウザ側送信を使用
-    e.preventDefault();
-    setIsSubmitting(true);
-    setMessage(null);
-
-    try {
-      const formDataObj = new FormData();
-      formDataObj.append('full_name', formData.full_name);
-      formDataObj.append('username', formData.username);
-
-      formDataObj.append('career', formData.career);
-      formDataObj.append('bio', formData.bio);
-      formDataObj.append('consideration_start_date', formData.consideration_start_date);
-      formDataObj.append('entrepreneurship_start_date', formData.entrepreneurship_start_date);
-
-      // API route fallback
-      const response = await fetch('/api/profile/update', {
-        method: 'POST',
-        body: formDataObj,
-      });
-
-      const result = await response.json();
-
-      if (result.success) {
-        setMessage({ type: 'success', text: result.message });
-        setIsEditing(false);
-        setTimeout(() => {
-          window.location.reload();
-        }, 1000);
-      } else {
-        setMessage({ type: 'error', text: result.message });
-      }
-    } catch (error) {
-      console.error('プロフィール更新エラー:', error);
-      setMessage({ type: 'error', text: 'プロフィールの更新に失敗しました。' });
-    } finally {
-      setIsSubmitting(false);
-    }
   };
 
   return (
@@ -133,8 +70,6 @@ export default function ProfileHeader({ profile, serverAction }: ProfileHeaderPr
 
           <div className="flex-1 text-center sm:text-left">
             <form
-              onSubmit={serverAction ? undefined : handleSubmit}
-              onChange={preventSubmitIfNotEditing}
               action={serverAction && isEditing ? saAction : undefined}
               method={serverAction && isEditing ? 'post' : undefined}
               className="space-y-4 sm:space-y-6"
@@ -206,19 +141,18 @@ export default function ProfileHeader({ profile, serverAction }: ProfileHeaderPr
                     {username && (
                       <p className="text-sm sm:text-base text-gray-500">@{username}</p>
                     )}
-
                   </>
                 )}
               </div>
 
-              {/* メッセージ表示 */}
-              {message && (
+              {/* サーバーからのメッセージ表示（自動送信は行わない） */}
+              {saState.message && (
                 <div className={`p-3 rounded-lg text-sm ${
-                  message.type === 'success' 
+                  saState.success 
                     ? 'bg-green-50 text-green-800 border border-green-200' 
                     : 'bg-red-50 text-red-800 border border-red-200'
                 }`}>
-                  {message.text}
+                  {saState.message}
                 </div>
               )}
 
@@ -227,17 +161,15 @@ export default function ProfileHeader({ profile, serverAction }: ProfileHeaderPr
                   <>
                     <button
                       type="submit"
-                      disabled={isSubmitting && !serverAction}
-                      className="px-4 py-2 border border-orange-500 bg-orange-500 text-white rounded-full hover:bg-orange-600 transition-colors whitespace-nowrap cursor-pointer text-sm sm:text-base disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                      className="px-4 py-2 border border-orange-500 bg-orange-500 text-white rounded-full hover:bg-orange-600 transition-colors whitespace-nowrap cursor-pointer text-sm sm:text-base"
                     >
                       <i className="ri-save-line mr-2"></i>
-                      {isSubmitting && !serverAction ? '保存中...' : '保存'}
+                      保存
                     </button>
                     <button
                       type="button"
                       onClick={handleEditToggle}
-                      disabled={isSubmitting && !serverAction}
-                      className="px-4 py-2 border border-gray-300 text-gray-700 rounded-full hover:bg-gray-50 transition-colors whitespace-nowrap cursor-pointer text-sm sm:text-base disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                      className="px-4 py-2 border border-gray-300 text-gray-700 rounded-full hover:bg-gray-50 transition-colors whitespace-nowrap cursor-pointer text-sm sm:text-base"
                     >
                       キャンセル
                     </button>

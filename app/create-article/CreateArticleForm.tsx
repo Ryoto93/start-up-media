@@ -3,6 +3,8 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { useFormState, useFormStatus } from 'react-dom';
+import type { CreateArticleState } from '@/lib/data/articles-actions';
 
 interface ArticleFormData {
   title: string;
@@ -15,7 +17,31 @@ interface ArticleFormData {
   isPublished: boolean;
 }
 
-export default function CreateArticleForm() {
+function SubmitButton({ children }: { children: React.ReactNode }) {
+  const { pending } = useFormStatus();
+  return (
+    <button
+      type="submit"
+      disabled={pending}
+      className="px-6 sm:px-8 py-3 bg-orange-500 text-white rounded-full hover:bg-orange-600 transition-colors disabled:opacity-50 whitespace-nowrap cursor-pointer text-sm sm:text-base flex items-center justify-center"
+    >
+      {pending ? (
+        <>
+          <i className="ri-loader-4-line mr-2 animate-spin"></i>
+          投稿中...
+        </>
+      ) : (
+        children
+      )}
+    </button>
+  );
+}
+
+interface CreateArticleFormProps {
+  serverAction: (_prev: CreateArticleState, fd: FormData) => Promise<CreateArticleState>
+}
+
+export default function CreateArticleForm({ serverAction }: CreateArticleFormProps) {
   const [formData, setFormData] = useState<ArticleFormData>({
     title: '',
     summary: '',
@@ -27,8 +53,9 @@ export default function CreateArticleForm() {
     isPublished: true
   });
 
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
+
+  const [saState, saAction] = useFormState(serverAction, { success: false, message: '' });
 
   const phases = [
     '起業検討期',
@@ -68,36 +95,6 @@ export default function CreateArticleForm() {
         ? prev.categories.filter(c => c !== category)
         : [...prev.categories, category]
     }));
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    
-    // バリデーション
-    if (!formData.title.trim() || !formData.content.trim() || !formData.eventDate || !formData.phase) {
-      alert('必須項目を入力してください');
-      setIsSubmitting(false);
-      return;
-    }
-
-    try {
-      // TODO: Supabase実装時にデータ保存処理を追加
-      console.log('記事データ:', formData);
-      
-      // 成功メッセージ表示
-      setTimeout(() => {
-        setIsSubmitting(false);
-        alert('記事を投稿しました！');
-        // プロフィールページにリダイレクト
-        window.location.href = '/profile';
-      }, 1500);
-      
-    } catch (error) {
-      console.error('投稿エラー:', error);
-      setIsSubmitting(false);
-      alert('投稿に失敗しました。もう一度お試しください。');
-    }
   };
 
   const getPhaseColor = (phase: string) => {
@@ -147,13 +144,19 @@ export default function CreateArticleForm() {
                 編集に戻る
               </button>
               <div className="flex gap-3">
-                <button
-                  onClick={handleSubmit}
-                  disabled={isSubmitting}
-                  className="px-4 sm:px-6 py-2 bg-orange-500 text-white rounded-full hover:bg-orange-600 transition-colors disabled:opacity-50 whitespace-nowrap cursor-pointer text-sm sm:text-base"
-                >
-                  {isSubmitting ? '投稿中...' : '投稿する'}
-                </button>
+                <form action={saAction}>
+                  {/* Hidden fields for server action */}
+                  <input type="hidden" name="title" value={formData.title} />
+                  <input type="hidden" name="summary" value={formData.summary} />
+                  <input type="hidden" name="content" value={formData.content} />
+                  <input type="hidden" name="actual_event_date" value={formData.eventDate} />
+                  <input type="hidden" name="phase" value={formData.phase} />
+                  <input type="hidden" name="outcome" value={formData.outcome} />
+                  <input type="hidden" name="categories" value={JSON.stringify(formData.categories)} />
+                  <SubmitButton>
+                    投稿する
+                  </SubmitButton>
+                </form>
               </div>
             </div>
 
@@ -180,11 +183,11 @@ export default function CreateArticleForm() {
               <div className="flex items-center text-sm text-gray-600 mb-4">
                 <i className="ri-calendar-line mr-2"></i>
                 <span>
-                  {new Date(formData.eventDate).toLocaleDateString('ja-JP', {
+                  {formData.eventDate ? new Date(formData.eventDate).toLocaleDateString('ja-JP', {
                     year: 'numeric',
                     month: 'long',
                     day: 'numeric'
-                  })}
+                  }) : ''}
                 </span>
               </div>
 
@@ -205,7 +208,7 @@ export default function CreateArticleForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6 sm:space-y-8">
+    <form action={saAction} className="space-y-6 sm:space-y-8">
       <div className="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
           {/* メインフォーム */}
@@ -216,6 +219,7 @@ export default function CreateArticleForm() {
               </label>
               <input
                 type="text"
+                name="title"
                 value={formData.title}
                 onChange={(e) => handleInputChange('title', e.target.value)}
                 placeholder="起業での出来事や学びのタイトルを入力してください"
@@ -231,6 +235,7 @@ export default function CreateArticleForm() {
                 記事の要約
               </label>
               <textarea
+                name="summary"
                 value={formData.summary}
                 onChange={(e) => handleInputChange('summary', e.target.value)}
                 placeholder="記事の内容を簡潔にまとめてください（200文字以内）"
@@ -246,6 +251,7 @@ export default function CreateArticleForm() {
                 記事本文 *
               </label>
               <textarea
+                name="content"
                 value={formData.content}
                 onChange={(e) => handleInputChange('content', e.target.value)}
                 placeholder="あなたの起業ジャーニーでの体験、学び、感想を詳しく書いてください。具体的なエピソードや数字があると読者により伝わりやすくなります。"
@@ -266,6 +272,7 @@ export default function CreateArticleForm() {
               </label>
               <input
                 type="date"
+                name="actual_event_date"
                 value={formData.eventDate}
                 onChange={(e) => handleInputChange('eventDate', e.target.value)}
                 className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none"
@@ -304,6 +311,8 @@ export default function CreateArticleForm() {
               <label className="block text-sm font-semibold text-gray-900 mb-3">
                 カテゴリー（複数選択可）
               </label>
+              {/* hidden input to carry categories as JSON */}
+              <input type="hidden" name="categories" value={JSON.stringify(formData.categories)} />
               <div className="grid grid-cols-2 gap-2">
                 {categoryOptions.map(category => (
                   <button
@@ -326,6 +335,8 @@ export default function CreateArticleForm() {
               <label className="block text-sm font-semibold text-gray-900 mb-3">
                 結果・成果
               </label>
+              {/* hidden input for selected outcome */}
+              <input type="hidden" name="outcome" value={formData.outcome} />
               <div className="grid grid-cols-2 gap-2">
                 {outcomes.map(outcome => (
                   <button
@@ -391,25 +402,21 @@ export default function CreateArticleForm() {
               <i className="ri-eye-line mr-2"></i>
               プレビュー
             </button>
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="px-6 sm:px-8 py-3 bg-orange-500 text-white rounded-full hover:bg-orange-600 transition-colors disabled:opacity-50 whitespace-nowrap cursor-pointer text-sm sm:text-base"
-            >
-              {isSubmitting ? (
-                <>
-                  <i className="ri-loader-4-line mr-2 animate-spin"></i>
-                  投稿中...
-                </>
-              ) : (
-                <>
-                  <i className="ri-send-plane-line mr-2"></i>
-                  投稿する
-                </>
-              )}
-            </button>
+            <SubmitButton>
+              <>
+                <i className="ri-send-plane-line mr-2"></i>
+                投稿する
+              </>
+            </SubmitButton>
           </div>
         </div>
+
+        {/* エラーメッセージ表示 */}
+        {saState.message && !saState.success && (
+          <div className="mt-4 p-3 rounded-lg text-sm bg-red-50 text-red-800 border border-red-200">
+            {saState.message}
+          </div>
+        )}
       </div>
     </form>
   );

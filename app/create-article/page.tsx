@@ -1,8 +1,7 @@
 
-'use client';
-
 import Header from '../../components/Header';
 import CreateArticleForm from './CreateArticleForm';
+import { createArticleWithState } from '@/lib/data/articles-actions';
 
 export default function CreateArticlePage() {
   return (
@@ -13,7 +12,7 @@ export default function CreateArticlePage() {
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">新しい記事を投稿</h1>
           <p className="text-gray-600 text-sm sm:text-base">あなたの起業ジャーニーを仲間と共有しましょう</p>
         </div>
-        <CreateArticleForm />
+        <CreateArticleForm serverAction={createArticleWithState} />
       </main>
     </div>
   );
