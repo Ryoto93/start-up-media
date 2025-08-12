@@ -1,17 +1,26 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import type { Profile } from '@/lib/data/profiles';
 import { useFormState } from 'react-dom';
 
+interface ProfileStatsProps {
+  articleCount: number;
+  totalLikes: number;
+  daysSinceEntrepreneurship: number | null;
+  daysSinceConsideration: number | null;
+}
+
 interface ProfileHeaderProps {
   profile: Profile;
   serverAction?: (_prevState: { success: boolean; message: string }, formData: FormData) => Promise<{ success: boolean; message: string }>
+  stats?: ProfileStatsProps;
 }
 
-export default function ProfileHeader({ profile, serverAction }: ProfileHeaderProps) {
+export default function ProfileHeader({ profile, serverAction, stats }: ProfileHeaderProps) {
   const [isEditing, setIsEditing] = useState(false);
+  const [hasSubmitted, setHasSubmitted] = useState(false);
 
   const [formData, setFormData] = useState({
     full_name: profile.full_name || '',
@@ -27,6 +36,17 @@ export default function ProfileHeader({ profile, serverAction }: ProfileHeaderPr
     serverAction ?? (async () => ({ success: false, message: '' })),
     { success: false, message: '' }
   );
+
+  // 成功時は編集モードを閉じて再読み込み（自動送信ではなく、送信後のUX）
+  useEffect(() => {
+    if (!hasSubmitted) return;
+    if (saState.success) {
+      setIsEditing(false);
+      // 反映のためにリロード（Server Components再評価）
+      const t = setTimeout(() => window.location.reload(), 300);
+      return () => clearTimeout(t);
+    }
+  }, [hasSubmitted, saState.success]);
 
   const displayName = profile.full_name ?? '未設定の名前';
   const username = profile.username;
@@ -51,6 +71,7 @@ export default function ProfileHeader({ profile, serverAction }: ProfileHeaderPr
         entrepreneurship_start_date: profile.entrepreneurship_start_date || ''
       });
     }
+    setHasSubmitted(false);
     setIsEditing(!isEditing);
   };
 
@@ -69,7 +90,40 @@ export default function ProfileHeader({ profile, serverAction }: ProfileHeaderPr
           </div>
 
           <div className="flex-1 text-center sm:text-left">
+            {/* 上段: 名前・ユーザー名・統計 */}
+            {!isEditing && (
+              <div className="mb-4 sm:mb-6">
+                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-1">{displayName}</h1>
+                {username && (
+                  <p className="text-sm sm:text-base text-gray-500">@{username}</p>
+                )}
+
+                {/* 統計表示 */}
+                {stats && (
+                  <div className="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4 text-center sm:text-left">
+                    <div className="bg-orange-50 border border-orange-100 rounded-lg p-3">
+                      <p className="text-xs text-orange-600">記事数</p>
+                      <p className="text-lg font-semibold text-orange-700">{stats.articleCount ?? 0}</p>
+                    </div>
+                    <div className="bg-orange-50 border border-orange-100 rounded-lg p-3">
+                      <p className="text-xs text-orange-600">総いいね</p>
+                      <p className="text-lg font-semibold text-orange-700">{stats.totalLikes ?? 0}</p>
+                    </div>
+                    <div className="bg-orange-50 border border-orange-100 rounded-lg p-3">
+                      <p className="text-xs text-orange-600">起業から</p>
+                      <p className="text-lg font-semibold text-orange-700">{stats.daysSinceEntrepreneurship ?? 0}日</p>
+                    </div>
+                    <div className="bg-orange-50 border border-orange-100 rounded-lg p-3">
+                      <p className="text-xs text-orange-600">検討開始から</p>
+                      <p className="text-lg font-semibold text-orange-700">{stats.daysSinceConsideration ?? 0}日</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
             <form
+              key={isEditing ? 'editing' : 'view'}
               action={serverAction && isEditing ? saAction : undefined}
               method={serverAction && isEditing ? 'post' : undefined}
               className="space-y-4 sm:space-y-6"
@@ -141,12 +195,38 @@ export default function ProfileHeader({ profile, serverAction }: ProfileHeaderPr
                     {username && (
                       <p className="text-sm sm:text-base text-gray-500">@{username}</p>
                     )}
+
+                    {/* 追加のプロフィール情報を表示（保存内容の可視化） */}
+                    {(profile.bio || profile.career || profile.consideration_start_date || profile.entrepreneurship_start_date) && (
+                      <div className="mt-4 space-y-3 text-left">
+                        {profile.bio && (
+                          <p className="text-sm sm:text-base text-gray-700 whitespace-pre-wrap">{profile.bio}</p>
+                        )}
+                        {profile.career && (
+                          <p className="text-sm text-gray-600"><i className="ri-briefcase-line mr-2"></i>{profile.career}</p>
+                        )}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                          {profile.consideration_start_date && (
+                            <div className="text-xs sm:text-sm text-gray-600 flex items-center">
+                              <i className="ri-calendar-line mr-2"></i>
+                              <span>起業検討開始日: {new Date(profile.consideration_start_date).toLocaleDateString('ja-JP')}</span>
+                            </div>
+                          )}
+                          {profile.entrepreneurship_start_date && (
+                            <div className="text-xs sm:text-sm text-gray-600 flex items-center">
+                              <i className="ri-rocket-line mr-2"></i>
+                              <span>起業開始日: {new Date(profile.entrepreneurship_start_date).toLocaleDateString('ja-JP')}</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
                   </>
                 )}
               </div>
 
-              {/* サーバーからのメッセージ表示（自動送信は行わない） */}
-              {saState.message && (
+              {/* サーバーからのメッセージ表示（ユーザー送信後のみ） */}
+              {hasSubmitted && saState.message && (
                 <div className={`p-3 rounded-lg text-sm ${
                   saState.success 
                     ? 'bg-green-50 text-green-800 border border-green-200' 
@@ -161,6 +241,7 @@ export default function ProfileHeader({ profile, serverAction }: ProfileHeaderPr
                   <>
                     <button
                       type="submit"
+                      onClick={() => setHasSubmitted(true)}
                       className="px-4 py-2 border border-orange-500 bg-orange-500 text-white rounded-full hover:bg-orange-600 transition-colors whitespace-nowrap cursor-pointer text-sm sm:text-base"
                     >
                       <i className="ri-save-line mr-2"></i>

@@ -88,6 +88,68 @@ export async function getProfile(): Promise<Profile | null> {
 }
 
 /**
+ * 現在ログイン中ユーザーのプロフィール＋記事集計（記事数・総いいね数）を返す
+ */
+export async function getProfileWithStats(): Promise<{
+  profile: Profile;
+  articleCount: number;
+  totalLikes: number;
+} | null> {
+  try {
+    const supabase = createServer();
+
+    // ユーザーID取得
+    let userId: string | null = null;
+    const { data: userData } = await supabase.auth.getUser();
+    if (userData?.user?.id) {
+      userId = userData.user.id;
+    } else {
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (sessionData?.session?.user?.id) {
+        userId = sessionData.session.user.id;
+      }
+    }
+    if (!userId) return null;
+
+    // プロフィール取得
+    const { data: profileRow, error: pErr } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', userId)
+      .maybeSingle();
+    if (pErr || !profileRow) return null;
+
+    // 記事数（公開カラムがないため author_id で全件カウント）
+    const { count: articlesCount, error: cErr } = await supabase
+      .from('articles')
+      .select('id', { count: 'exact', head: true })
+      .eq('author_id', userId);
+    if (cErr) {
+      console.warn('記事数取得エラー:', cErr.message);
+    }
+
+    // 総いいね数（likes の合計）
+    const { data: likesRows, error: lErr } = await supabase
+      .from('articles')
+      .select('likes')
+      .eq('author_id', userId);
+    if (lErr) {
+      console.warn('いいね合計取得エラー:', lErr.message);
+    }
+    const totalLikes = (likesRows ?? []).reduce((sum: number, r: any) => sum + (typeof r.likes === 'number' ? r.likes : 0), 0);
+
+    return {
+      profile: profileRow as Profile,
+      articleCount: articlesCount ?? 0,
+      totalLikes,
+    };
+  } catch (e) {
+    console.error('getProfileWithStats unexpected error:', e);
+    return null;
+  }
+}
+
+/**
  * プロフィール情報を更新するServer Action
  * - 行がない場合は作成（upsert）
  */
@@ -137,11 +199,10 @@ export async function updateProfile(formData: FormData): Promise<{ success: bool
       return { success: false, message: 'ユーザー名は3文字以上で入力してください。' };
     }
     
-    // プロフィールを作成または更新（スキーマ準拠）
-    const { error: upsertError } = await supabase
+    // プロフィール更新（スキーマ準拠）
+    const { error: updateError } = await supabase
       .from('profiles')
-      .upsert({
-        id: userId,
+      .update({
         full_name,
         username,
         career,
@@ -149,13 +210,13 @@ export async function updateProfile(formData: FormData): Promise<{ success: bool
         consideration_start_date,
         entrepreneurship_start_date,
         updated_at: new Date().toISOString(),
-        // created_at は DB のデフォルトを使用
-      }, { onConflict: 'id' })
+      })
+      .eq('id', userId)
 
-    if (upsertError) {
-      console.error('プロフィール更新エラー:', upsertError.message);
+    if (updateError) {
+      console.error('プロフィール更新エラー:', updateError.message);
       // 一意制約エラーの場合
-      if (upsertError.code === '23505' && upsertError.message.includes('username')) {
+      if (updateError.code === '23505' && updateError.message.includes('username')) {
         return { success: false, message: 'そのユーザー名は既に使用されています。別のユーザー名をお試しください。' };
       }
       return { success: false, message: 'プロフィールの更新に失敗しました。時間をおいて再度お試しください。' };
