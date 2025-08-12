@@ -6,7 +6,10 @@ export interface Profile {
   username: string | null;
   full_name: string | null;
   avatar_url: string | null;
-  website: string | null;
+  career: string | null;
+  bio: string | null;
+  consideration_start_date: string | null;
+  entrepreneurship_start_date: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -14,7 +17,10 @@ export interface Profile {
 export interface UpdateProfileData {
   full_name: string;
   username: string;
-  website?: string;
+  career?: string;
+  bio?: string;
+  consideration_start_date?: string;
+  entrepreneurship_start_date?: string;
 }
 
 /**
@@ -22,28 +28,45 @@ export interface UpdateProfileData {
  * @returns プロフィール情報、またはログインしていない場合はnull
  */
 export async function getProfile(): Promise<Profile | null> {
+  console.log('getProfile called');
+  
   try {
     const supabase = createServer();
+    console.log('Supabase client created');
     
-    // 現在のセッションからユーザーIDを取得
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
-    
+    // 現在のセッションからユーザーIDを取得（fallback付き）
+    let userId: string | null = null;
+
+    const { data: userData, error: userError } = await supabase.auth.getUser();
+    console.log('getUser result:', { user: userData?.user, userError });
     if (userError) {
-      console.error('ユーザー認証エラー:', userError.message);
+      console.warn('getUser error, trying getSession:', userError.message);
+    }
+
+    if (userData?.user?.id) {
+      userId = userData.user.id;
+    } else {
+      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+      console.log('getSession result:', { session: sessionData?.session, sessionError });
+      if (sessionData?.session?.user?.id) {
+        userId = sessionData.session.user.id;
+      }
+    }
+
+    if (!userId) {
+      console.log('No userId found, returning null');
       return null;
     }
     
-    if (!user) {
-      // ログインしていない場合
-      return null;
-    }
-    
-    // profilesテーブルからプロフィール情報を取得
+    // profilesテーブルからプロフィール情報を取得（スキーマに存在するカラムすべて）
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
-      .select('id, username, full_name, avatar_url, website, created_at, updated_at')
-      .eq('id', user.id)
+      .select('*')
+      .eq('id', userId)
       .maybeSingle();
+    
+    console.log('Profile data:', profile);
+    console.log('Profile error:', profileError);
     
     if (profileError) {
       console.error('プロフィール取得エラー:', profileError.message);
@@ -51,10 +74,11 @@ export async function getProfile(): Promise<Profile | null> {
     }
     
     if (!profile) {
-      // プロフィールが見つからない場合
+      console.log('No profile found, returning null');
       return null;
     }
     
+    console.log('Returning profile:', profile);
     return profile as Profile;
     
   } catch (error) {
@@ -69,6 +93,7 @@ export async function getProfile(): Promise<Profile | null> {
  * @returns 更新結果
  */
 export async function updateProfile(formData: FormData): Promise<{ success: boolean; message: string }> {
+  'use server'
   try {
     const supabase = createServer();
     
@@ -87,7 +112,10 @@ export async function updateProfile(formData: FormData): Promise<{ success: bool
     // フォームデータを取得・検証
     const full_name = String(formData.get('full_name') ?? '').trim();
     const username = String(formData.get('username') ?? '').trim();
-    const website = String(formData.get('website') ?? '').trim();
+    const career = String(formData.get('career') ?? '').trim() || null;
+    const bio = String(formData.get('bio') ?? '').trim() || null;
+    const consideration_start_date = String(formData.get('consideration_start_date') ?? '').trim() || null;
+    const entrepreneurship_start_date = String(formData.get('entrepreneurship_start_date') ?? '').trim() || null;
     
     // バリデーション
     if (!full_name) {
@@ -102,13 +130,16 @@ export async function updateProfile(formData: FormData): Promise<{ success: bool
       return { success: false, message: 'ユーザー名は3文字以上で入力してください。' };
     }
     
-    // プロフィール更新
+    // プロフィール更新（スキーマ準拠）
     const { error: updateError } = await supabase
       .from('profiles')
       .update({
         full_name,
         username,
-        website: website || null,
+        career,
+        bio,
+        consideration_start_date,
+        entrepreneurship_start_date,
         updated_at: new Date().toISOString()
       })
       .eq('id', user.id);
@@ -133,4 +164,16 @@ export async function updateProfile(formData: FormData): Promise<{ success: bool
     console.error('プロフィール更新中の予期しないエラー:', error);
     return { success: false, message: 'プロフィールの更新に失敗しました。' };
   }
+}
+
+/**
+ * useFormState から呼び出すためのラッパー Server Action
+ */
+export async function updateProfileWithState(
+  _prevState: { success: boolean; message: string },
+  formData: FormData
+): Promise<{ success: boolean; message: string }> {
+  'use server'
+  const result = await updateProfile(formData)
+  return result
 } 

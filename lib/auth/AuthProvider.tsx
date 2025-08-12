@@ -4,10 +4,12 @@ import { createContext, useContext, useEffect, useState, ReactNode } from 'react
 import { User } from '@supabase/supabase-js'
 import { useRouter, usePathname } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import type { Profile } from '@/lib/data/profiles'
 
 interface AuthContextType {
   user: User | null
   loading: boolean
+  profile: Profile | null
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -19,9 +21,25 @@ interface AuthProviderProps {
 export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
+  const [profile, setProfile] = useState<Profile | null>(null)
   const router = useRouter()
   const pathname = usePathname()
   const supabase = createClient()
+
+  // サーバー側プロフィール取得（API経由）
+  const fetchServerProfile = async (): Promise<Profile | null> => {
+    try {
+      const res = await fetch('/api/profile/get', { method: 'GET', cache: 'no-store' })
+      if (!res.ok) {
+        throw new Error(`Failed to fetch profile: ${res.status}`)
+      }
+      const json = await res.json() as { success: boolean; profile: Profile | null }
+      return json.profile ?? null
+    } catch (e) {
+      console.error('fetchServerProfile error:', e)
+      return null
+    }
+  }
 
   useEffect(() => {
     // 初期認証状態を取得
@@ -29,9 +47,17 @@ export function AuthProvider({ children }: AuthProviderProps) {
       try {
         const { data: { session } } = await supabase.auth.getSession()
         setUser(session?.user ?? null)
+
+        if (session?.user) {
+          const serverProfile = await fetchServerProfile()
+          setProfile(serverProfile)
+        } else {
+          setProfile(null)
+        }
       } catch (error) {
         console.error('Error getting initial session:', error)
         setUser(null)
+        setProfile(null)
       } finally {
         setLoading(false)
       }
@@ -42,8 +68,21 @@ export function AuthProvider({ children }: AuthProviderProps) {
     // 認証状態の変化を監視
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (_event, session) => {
-        setUser(session?.user ?? null)
-        setLoading(false)
+        try {
+          setUser(session?.user ?? null)
+
+          if (session?.user) {
+            const serverProfile = await fetchServerProfile()
+            setProfile(serverProfile)
+          } else {
+            setProfile(null)
+          }
+        } catch (e) {
+          console.error('onAuthStateChange handler error:', e)
+          setProfile(null)
+        } finally {
+          setLoading(false)
+        }
       }
     )
 
@@ -51,36 +90,19 @@ export function AuthProvider({ children }: AuthProviderProps) {
     return () => subscription.unsubscribe()
   }, [supabase.auth])
 
-  // プロフィール存在チェックとリダイレクト処理（クライアントサイドのSupabaseで実行）
+  // リダイレクトロジックの最適化
   useEffect(() => {
-    const checkProfile = async () => {
-      if (!loading && user && pathname !== '/account-setup') {
-        try {
-          const { data, error } = await supabase
-            .from('profiles')
-            .select('id')
-            .eq('id', user.id)
-            .maybeSingle()
-          if (error) {
-            // 存在しない場合はerrorがnullでdataがnullになることもあるため、両方をチェック
-            console.warn('プロフィール取得時の警告:', error.message)
-          }
-          if (!data) {
-            router.push('/account-setup')
-          }
-        } catch (error) {
-          console.error('プロフィールチェックエラー:', error)
-          router.push('/account-setup')
-        }
-      }
+    // ローディングが完了し、ユーザーは存在するがプロフィールが存在しない場合のみリダイレクト
+    // サーバー側で制御する /profile ではクライアント側リダイレクトをしない
+    if (!loading && user && !profile && pathname !== '/account-setup' && pathname !== '/profile') {
+      router.push('/account-setup')
     }
-
-    checkProfile()
-  }, [user, loading, pathname, router, supabase])
+  }, [user, loading, profile, pathname, router])
 
   const value = {
     user,
-    loading
+    loading,
+    profile
   }
 
   return (
