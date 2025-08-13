@@ -554,4 +554,6 @@ export async function getPrevNextForAuthor(authorId: string, currentId: string):
   const next = index < total - 1 && index >= 0 ? list[index + 1] : null;
   const firstEventDate = total > 0 ? (list[0].actual_event_date || list[0].event_date || list[0].date) : null;
   return { prev, next, index, total, firstEventDate };
-} 
+}
+
+ 

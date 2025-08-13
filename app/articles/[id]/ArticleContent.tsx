@@ -2,7 +2,7 @@
 'use client';
 
 import { useState } from 'react';
-
+import Image from 'next/image';
 import { Article } from '@/types';
 
 interface ArticleContentProps {
@@ -33,6 +33,30 @@ export default function ArticleContent({ article }: ArticleContentProps) {
 
   const formatContent = (content: string) => {
     return content.split('\n').map((line, index) => {
+      // 画像のMarkdown記法をチェック: ![alt](url)
+      const imageMatch = line.match(/^\!\[([^\]]*)\]\(([^)]+)\)$/);
+      if (imageMatch) {
+        const altText = imageMatch[1] || '記事内画像';
+        const imageUrl = imageMatch[2];
+        return (
+          <div key={index} className="my-6 rounded-lg overflow-hidden border border-gray-200">
+            <Image
+              src={imageUrl}
+              alt={altText}
+              width={800}
+              height={600}
+              className="w-full h-auto object-cover"
+              style={{ maxHeight: '600px' }}
+            />
+            {altText && altText !== '画像' && (
+              <div className="px-4 py-2 bg-gray-50 text-sm text-gray-600 text-center">
+                {altText}
+              </div>
+            )}
+          </div>
+        );
+      }
+      
       if (line.startsWith('# ')) {
         return <h1 key={index} className="text-2xl sm:text-3xl font-bold text-gray-900 mt-8 mb-4 pb-2 border-b-2 border-orange-200">{line.replace('# ', '')}</h1>;
       } else if (line.startsWith('## ')) {

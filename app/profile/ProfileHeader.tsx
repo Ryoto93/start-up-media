@@ -22,6 +22,7 @@ interface ProfileHeaderProps {
 export default function ProfileHeader({ profile, serverAction, stats }: ProfileHeaderProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [hasSubmitted, setHasSubmitted] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   const [formData, setFormData] = useState({
     full_name: profile.full_name || '',
@@ -71,6 +72,7 @@ export default function ProfileHeader({ profile, serverAction, stats }: ProfileH
         consideration_start_date: profile.consideration_start_date || '',
         entrepreneurship_start_date: profile.entrepreneurship_start_date || ''
       });
+      setSelectedFile(null);
     }
     setHasSubmitted(false);
     setIsEditing(!isEditing);
@@ -83,12 +85,19 @@ export default function ProfileHeader({ profile, serverAction, stats }: ProfileH
           <div className="flex-shrink-0 self-center sm:self-start">
             <div className="relative">
               <Image
-                src={avatarUrl}
+                src={selectedFile ? URL.createObjectURL(selectedFile) : avatarUrl}
                 alt="プロフィール画像"
                 width={128}
                 height={128}
                 className="w-24 h-24 sm:w-32 sm:h-32 rounded-full object-cover border-4 border-orange-100"
+                unoptimized={selectedFile ? true : false}
               />
+              {isEditing && (
+                <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 rounded-full cursor-pointer hover:bg-opacity-40 transition-all"
+                     onClick={() => document.getElementById('profile-image-input')?.click()}>
+                  <i className="ri-camera-line text-white text-2xl"></i>
+                </div>
+              )}
             </div>
           </div>
 
@@ -169,26 +178,43 @@ export default function ProfileHeader({ profile, serverAction, stats }: ProfileH
                       placeholder="経歴（例：〇〇株式会社／エンジニア）"
                       className="text-sm sm:text-base text-gray-700 border-b border-gray-200 focus:border-orange-500 outline-none bg-transparent w-full text-left px-2 py-1"
                     />
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="space-y-3">
                       <div>
-                        <label className="block text-xs text-gray-500 mb-1">起業検討開始日</label>
+                        <label className="block text-xs text-gray-500 mb-1">プロフィール画像</label>
                         <input
-                          type="date"
-                          name="consideration_start_date"
-                          value={formData.consideration_start_date}
-                          onChange={(e) => handleInputChange('consideration_start_date', e.target.value)}
-                          className="w-full text-sm text-gray-700 border border-gray-200 focus:border-orange-500 outline-none bg-transparent px-3 py-2 rounded-lg"
+                          id="profile-image-input"
+                          type="file"
+                          name="profile_image"
+                          accept="image/*"
+                          onChange={(e) => {
+                            const file = e.currentTarget.files?.[0] || null;
+                            setSelectedFile(file);
+                          }}
+                          className="block w-full text-sm text-gray-700 file:mr-4 file:rounded-md file:border-0 file:bg-orange-50 file:px-3 file:py-2 file:text-orange-700 hover:file:bg-orange-100"
                         />
+                        <p className="mt-1 text-xs text-gray-500">JPEG、PNG、WebP形式、5MB以下のファイルを選択してください。</p>
                       </div>
-                      <div>
-                        <label className="block text-xs text-gray-500 mb-1">起業開始日</label>
-                        <input
-                          type="date"
-                          name="entrepreneurship_start_date"
-                          value={formData.entrepreneurship_start_date}
-                          onChange={(e) => handleInputChange('entrepreneurship_start_date', e.target.value)}
-                          className="w-full text-sm text-gray-700 border border-gray-200 focus:border-orange-500 outline-none bg-transparent px-3 py-2 rounded-lg"
-                        />
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-xs text-gray-500 mb-1">起業検討開始日</label>
+                          <input
+                            type="date"
+                            name="consideration_start_date"
+                            value={formData.consideration_start_date}
+                            onChange={(e) => handleInputChange('consideration_start_date', e.target.value)}
+                            className="w-full text-sm text-gray-700 border border-gray-200 focus:border-orange-500 outline-none bg-transparent px-3 py-2 rounded-lg"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs text-gray-500 mb-1">起業開始日</label>
+                          <input
+                            type="date"
+                            name="entrepreneurship_start_date"
+                            value={formData.entrepreneurship_start_date}
+                            onChange={(e) => handleInputChange('entrepreneurship_start_date', e.target.value)}
+                            className="w-full text-sm text-gray-700 border border-gray-200 focus:border-orange-500 outline-none bg-transparent px-3 py-2 rounded-lg"
+                          />
+                        </div>
                       </div>
                     </div>
                   </div>

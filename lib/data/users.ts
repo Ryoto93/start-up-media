@@ -3,6 +3,7 @@
 import { createServer } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
+import { uploadImage } from './storage'
 
 interface CreateProfileData {
   username: string
@@ -10,6 +11,7 @@ interface CreateProfileData {
   bio?: string | null
   entrepreneurship_start_date?: string | null
   consideration_start_date: string
+  avatar_url?: string | null
 }
 
 function isFormData(input: unknown): input is FormData {
@@ -33,16 +35,16 @@ function normalizeInput(input: FormData | CreateProfileData): CreateProfileData 
 /**
  * ユーザープロフィールを作成/更新するServer Action
  * - 認証ユーザーの id を必ず含めて書き込み（RLSに準拠）
- * - 既存行がある場合は upsert で更新
+ * - プロフィール画像のアップロード処理を含む
  */
-export async function createProfile(data: FormData | CreateProfileData) {
+export async function createProfile(formData: FormData) {
   const {
     username,
     age = null,
     bio = null,
     entrepreneurship_start_date = null,
     consideration_start_date,
-  } = normalizeInput(data)
+  } = normalizeInput(formData)
 
   if (!username) throw new Error('ユーザー名は必須です。')
   if (!consideration_start_date) throw new Error('起業検討開始日は必須です。')
@@ -64,6 +66,19 @@ export async function createProfile(data: FormData | CreateProfileData) {
       throw new Error('ログインしていません。')
     }
 
+    // プロフィール画像のアップロード処理
+    let avatar_url: string | null = null
+    const profileImageFile = formData.get('profile_image') as File | null
+    
+    if (profileImageFile && profileImageFile.size > 0) {
+      const uploadResult = await uploadImage('avatars', profileImageFile)
+      if (uploadResult.success && uploadResult.publicUrl) {
+        avatar_url = uploadResult.publicUrl
+      } else {
+        throw new Error(uploadResult.message || 'プロフィール画像のアップロードに失敗しました。')
+      }
+    }
+
     // RLS対応: id は auth.uid() と一致させる
     const nowIso = new Date().toISOString()
     const { error: insertError } = await supabase
@@ -75,6 +90,7 @@ export async function createProfile(data: FormData | CreateProfileData) {
         bio,
         entrepreneurship_start_date,
         consideration_start_date,
+        avatar_url,
         created_at: nowIso,
         updated_at: nowIso,
       })

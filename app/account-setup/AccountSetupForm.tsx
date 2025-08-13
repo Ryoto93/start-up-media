@@ -84,6 +84,7 @@ export default function AccountSetupForm({ serverAction }: AccountSetupFormProps
           <div>
             <input
               type="file"
+              name="profile_image"
               accept="image/*"
               onChange={(e) => {
                 const file = e.currentTarget.files?.[0] || null
@@ -91,7 +92,7 @@ export default function AccountSetupForm({ serverAction }: AccountSetupFormProps
               }}
               className="block w-full text-sm text-gray-700 file:mr-4 file:rounded-md file:border-0 file:bg-orange-50 file:px-3 file:py-2 file:text-orange-700 hover:file:bg-orange-100"
             />
-            <p className="mt-1 text-xs text-gray-500">画像はまだアップロードされません。プレビューのみです。</p>
+            <p className="mt-1 text-xs text-gray-500">JPEG、PNG、WebP形式、5MB以下のファイルを選択してください。</p>
           </div>
         </div>
       </div>

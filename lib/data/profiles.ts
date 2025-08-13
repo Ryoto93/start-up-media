@@ -1,5 +1,6 @@
 import { createServer } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
+import { uploadImage } from './storage';
 
 export interface Profile {
   id: string;
@@ -199,18 +200,38 @@ export async function updateProfile(formData: FormData): Promise<{ success: bool
       return { success: false, message: 'ユーザー名は3文字以上で入力してください。' };
     }
     
+    // プロフィール画像のアップロード処理
+    let avatar_url: string | undefined = undefined
+    const profileImageFile = formData.get('profile_image') as File | null
+    
+    if (profileImageFile && profileImageFile.size > 0) {
+      const uploadResult = await uploadImage('avatars', profileImageFile)
+      if (uploadResult.success && uploadResult.publicUrl) {
+        avatar_url = uploadResult.publicUrl
+      } else {
+        return { success: false, message: uploadResult.message || 'プロフィール画像のアップロードに失敗しました。' }
+      }
+    }
+    
     // プロフィール更新（スキーマ準拠）
+    const updateData: Record<string, any> = {
+      full_name,
+      username,
+      career,
+      bio,
+      consideration_start_date,
+      entrepreneurship_start_date,
+      updated_at: new Date().toISOString(),
+    }
+    
+    // 画像がアップロードされた場合のみavatar_urlを更新
+    if (avatar_url) {
+      updateData.avatar_url = avatar_url
+    }
+    
     const { error: updateError } = await supabase
       .from('profiles')
-      .update({
-        full_name,
-        username,
-        career,
-        bio,
-        consideration_start_date,
-        entrepreneurship_start_date,
-        updated_at: new Date().toISOString(),
-      })
+      .update(updateData)
       .eq('id', userId)
 
     if (updateError) {

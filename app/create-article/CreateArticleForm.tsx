@@ -1,10 +1,11 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import Link from 'next/link';
 import { useFormState, useFormStatus } from 'react-dom';
 import type { CreateArticleState } from '@/lib/data/articles-actions';
+import { uploadArticleImage } from '@/lib/data/storage';
 
 interface ArticleFormData {
   title: string;
@@ -54,6 +55,9 @@ export default function CreateArticleForm({ serverAction }: CreateArticleFormPro
   });
 
   const [showPreview, setShowPreview] = useState(false);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [saState, saAction] = useFormState(serverAction, { success: false, message: '' });
 
@@ -130,6 +134,44 @@ export default function CreateArticleForm({ serverAction }: CreateArticleFormPro
     }
   };
 
+  const handleImageUpload = async (file: File) => {
+    if (!file) return;
+
+    setIsUploadingImage(true);
+    try {
+      const result = await uploadArticleImage(file);
+      if (result.success && result.publicUrl) {
+        // カーソル位置に画像を挿入
+        const textarea = textareaRef.current;
+        if (textarea) {
+          const start = textarea.selectionStart;
+          const end = textarea.selectionEnd;
+          const imageMarkdown = `![画像](${result.publicUrl})\n`;
+          const newContent = formData.content.slice(0, start) + imageMarkdown + formData.content.slice(end);
+          
+          handleInputChange('content', newContent);
+          
+          // カーソル位置を画像マークダウンの後に移動
+          setTimeout(() => {
+            textarea.focus();
+            textarea.setSelectionRange(start + imageMarkdown.length, start + imageMarkdown.length);
+          }, 0);
+        }
+      } else {
+        alert(result.message || '画像のアップロードに失敗しました。');
+      }
+    } catch (error) {
+      console.error('画像アップロードエラー:', error);
+      alert('画像のアップロードに失敗しました。時間をおいて再度お試しください。');
+    } finally {
+      setIsUploadingImage(false);
+    }
+  };
+
+  const handleImageButtonClick = () => {
+    fileInputRef.current?.click();
+  };
+
   if (showPreview) {
     return (
       <div className="max-w-4xl mx-auto">
@@ -198,7 +240,29 @@ export default function CreateArticleForm({ serverAction }: CreateArticleFormPro
 
             <div className="prose max-w-none">
               <div className="whitespace-pre-wrap text-gray-800 leading-relaxed text-sm sm:text-base">
-                {formData.content}
+                {formData.content.split('\n').map((line, index) => {
+                  const imageMatch = line.match(/^\!\[([^\]]*)\]\(([^)]+)\)$/);
+                  if (imageMatch) {
+                    const altText = imageMatch[1] || '記事内画像';
+                    const imageUrl = imageMatch[2];
+                    return (
+                      <div key={index} className="my-4 rounded-lg overflow-hidden border border-gray-200">
+                        <img
+                          src={imageUrl}
+                          alt={altText}
+                          className="w-full h-auto object-cover"
+                          style={{ maxHeight: '400px' }}
+                        />
+                        {altText && altText !== '画像' && (
+                          <div className="px-3 py-2 bg-gray-50 text-sm text-gray-600 text-center">
+                            {altText}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  }
+                  return <div key={index}>{line}</div>;
+                })}
               </div>
             </div>
           </div>
@@ -247,10 +311,43 @@ export default function CreateArticleForm({ serverAction }: CreateArticleFormPro
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-gray-900 mb-3">
-                記事本文 *
-              </label>
+              <div className="flex items-center justify-between mb-3">
+                <label className="block text-sm font-semibold text-gray-900">
+                  記事本文 *
+                </label>
+                <button
+                  type="button"
+                  onClick={handleImageButtonClick}
+                  disabled={isUploadingImage}
+                  className="flex items-center gap-2 px-3 py-1.5 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isUploadingImage ? (
+                    <>
+                      <i className="ri-loader-4-line animate-spin"></i>
+                      アップロード中...
+                    </>
+                  ) : (
+                    <>
+                      <i className="ri-image-line"></i>
+                      画像を挿入
+                    </>
+                  )}
+                </button>
+              </div>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    handleImageUpload(file);
+                  }
+                }}
+                className="hidden"
+              />
               <textarea
+                ref={textareaRef}
                 name="content"
                 value={formData.content}
                 onChange={(e) => handleInputChange('content', e.target.value)}
