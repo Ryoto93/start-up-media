@@ -6,6 +6,11 @@ import { redirect } from 'next/navigation'
 interface CreateProfileData {
   username: string
   full_name: string
+  age?: number | null
+  bio?: string | null
+  avatar_url?: string | null
+  entrepreneurship_start_date?: string | null
+  consideration_start_date: string
 }
 
 function isFormData(input: unknown): input is FormData {
@@ -16,7 +21,14 @@ function normalizeInput(input: FormData | CreateProfileData): CreateProfileData 
   if (isFormData(input)) {
     const username = String(input.get('username') ?? '').trim()
     const full_name = String(input.get('full_name') ?? '').trim()
-    return { username, full_name }
+    const rawAge = String(input.get('age') ?? '').trim()
+    const ageNum = rawAge ? Number(rawAge) : NaN
+    const age = Number.isFinite(ageNum) ? ageNum : null
+    const bio = (input.get('bio') ? String(input.get('bio')).trim() : '') || null
+    const avatar_url = (input.get('avatar_url') ? String(input.get('avatar_url')).trim() : '') || null
+    const entrepreneurship_start_date = (input.get('entrepreneurship_start_date') ? String(input.get('entrepreneurship_start_date')).trim() : '') || null
+    const consideration_start_date = String(input.get('consideration_start_date') ?? '').trim()
+    return { username, full_name, age, bio, avatar_url, entrepreneurship_start_date, consideration_start_date }
   }
   return input
 }
@@ -27,11 +39,18 @@ function normalizeInput(input: FormData | CreateProfileData): CreateProfileData 
  * - 既存行がある場合は upsert で更新
  */
 export async function createProfile(data: FormData | CreateProfileData) {
-  const { username, full_name } = normalizeInput(data)
+  const {
+    username,
+    full_name,
+    age = null,
+    bio = null,
+    avatar_url = null,
+    entrepreneurship_start_date = null,
+    consideration_start_date,
+  } = normalizeInput(data)
 
-  if (!username || !full_name) {
-    throw new Error('ユーザー名とフルネームは必須です。')
-  }
+  if (!username || !full_name) throw new Error('ユーザー名とフルネームは必須です。')
+  if (!consideration_start_date) throw new Error('起業検討開始日は必須です。')
 
   try {
     const supabase = createServer()
@@ -59,6 +78,11 @@ export async function createProfile(data: FormData | CreateProfileData) {
           id: user.id,
           username,
           full_name,
+          age,
+          bio,
+          avatar_url,
+          entrepreneurship_start_date,
+          consideration_start_date,
           created_at: nowIso,
           updated_at: nowIso,
         },
