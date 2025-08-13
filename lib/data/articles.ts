@@ -556,4 +556,6 @@ export async function getPrevNextForAuthor(authorId: string, currentId: string):
   return { prev, next, index, total, firstEventDate };
 }
 
+// （記事内画像のアップロードは lib/data/storage.ts の uploadArticleImage(Server Action) を使用）
+
  

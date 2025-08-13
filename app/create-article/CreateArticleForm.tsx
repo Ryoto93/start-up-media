@@ -146,7 +146,7 @@ export default function CreateArticleForm({ serverAction }: CreateArticleFormPro
         if (textarea) {
           const start = textarea.selectionStart;
           const end = textarea.selectionEnd;
-          const imageMarkdown = `![画像](${result.publicUrl})\n`;
+          const imageMarkdown = `\n\n![画像](${result.publicUrl})\n\n`;
           const newContent = formData.content.slice(0, start) + imageMarkdown + formData.content.slice(end);
           
           handleInputChange('content', newContent);
