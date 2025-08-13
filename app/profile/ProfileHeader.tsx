@@ -117,17 +117,17 @@ export default function ProfileHeader({ profile, serverAction, stats }: ProfileH
                       <p className="text-xs text-blue-600">記事数</p>
                       <p className="text-lg font-semibold text-blue-800">{stats.articleCount ?? 0}</p>
                     </div>
+                    <div className="bg-blue-50 border border-blue-100 rounded-lg p-3">
+                      <p className="text-xs text-blue-600">総いいね</p>
+                      <p className="text-lg font-semibold text-blue-800">{stats.totalLikes ?? 0}</p>
+                    </div>
                     <div className="bg-green-50 border border-green-100 rounded-lg p-3">
-                      <p className="text-xs text-green-600">総いいね</p>
-                      <p className="text-lg font-semibold text-green-800">{stats.totalLikes ?? 0}</p>
+                      <p className="text-xs text-green-600">起業から</p>
+                      <p className="text-lg font-semibold text-green-800">{stats.daysSinceEntrepreneurship ?? 0}日</p>
                     </div>
-                    <div className="bg-emerald-50 border border-emerald-100 rounded-lg p-3">
-                      <p className="text-xs text-emerald-600">起業から</p>
-                      <p className="text-lg font-semibold text-emerald-800">{stats.daysSinceEntrepreneurship ?? 0}日</p>
-                    </div>
-                    <div className="bg-orange-50 border border-orange-100 rounded-lg p-3">
-                      <p className="text-xs text-orange-600">検討開始から</p>
-                      <p className="text-lg font-semibold text-orange-800">{stats.daysSinceConsideration ?? 0}日</p>
+                    <div className="bg-green-50 border border-green-100 rounded-lg p-3">
+                      <p className="text-xs text-green-600">検討開始から</p>
+                      <p className="text-lg font-semibold text-green-800">{stats.daysSinceConsideration ?? 0}日</p>
                     </div>
                   </div>
                 )}
