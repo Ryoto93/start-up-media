@@ -89,7 +89,7 @@ export default function NavigationArticles({ prevArticle, nextArticle, position,
                       </p>
                       
                       <div className="text-xs text-gray-500">
-                        {prevArticle.eventDate}
+                        {prevArticle.event_date}
                       </div>
                     </div>
                   </div>
@@ -138,7 +138,7 @@ export default function NavigationArticles({ prevArticle, nextArticle, position,
                       </p>
                       
                       <div className="text-xs text-gray-500 text-right">
-                        {nextArticle.eventDate}
+                        {nextArticle.event_date}
                       </div>
                     </div>
                   </div>

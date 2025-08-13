@@ -3,14 +3,10 @@
 import Link from 'next/link';
 import Image from 'next/image';
 
+import { AuthorProfile as AuthorProfileType } from '@/types';
+
 interface AuthorProfileProps {
-  author: {
-    name: string;
-    age: number;
-    career: string;
-    bio: string;
-    avatar: string;
-  };
+  author: AuthorProfileType;
 }
 
 export default function AuthorProfile({ author }: AuthorProfileProps) {

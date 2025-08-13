@@ -26,7 +26,15 @@ export default function ArticleDetail({ initialArticle, relatedArticles = [], na
       <Header />
       <article className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <ArticleContent article={initialArticle} />
-        <AuthorProfile author={initialArticle.authorProfile} />
+        <AuthorProfile author={{
+          name: initialArticle.author,
+          age: 0, // DBから取得する場合は実データ使用
+          career: '', // DBから取得する場合は実データ使用  
+          bio: '', // DBから取得する場合は実データ使用
+          avatar: initialArticle.image_url || '/images/default-avatar.jpg',
+          entrepreneurshipStartDate: initialArticle.actual_event_date || initialArticle.event_date || '',
+          entrepreneurshipConsiderationStartDate: ''
+        }} />
         <EngagementSection initialLikes={initialArticle.likes} />
         {navigation && (
           <NavigationArticles

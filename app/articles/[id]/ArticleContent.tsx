@@ -3,17 +3,10 @@
 
 import { useState } from 'react';
 
+import { Article } from '@/types';
+
 interface ArticleContentProps {
-  article: {
-    title: string;
-    content: string;
-    author: string;
-    date: string;
-    eventDate: string;
-    phase: string;
-    outcome: string;
-    categories: string[];
-  };
+  article: Article;
 }
 
 export default function ArticleContent({ article }: ArticleContentProps) {
@@ -89,7 +82,7 @@ export default function ArticleContent({ article }: ArticleContentProps) {
               </div>
               <div className="flex items-center space-x-2">
                 <i className="ri-time-line w-4 h-4 flex items-center justify-center"></i>
-                <span>出来事日：{article.eventDate}</span>
+                <span>出来事日：{article.actual_event_date || article.event_date || article.date}</span>
               </div>
             </div>
           </div>

@@ -17,9 +17,9 @@ export default function TimelineSection({ userId, articles }: TimelineSectionPro
   const filtered = useMemo(() => {
     switch (filter) {
       case 'published':
-        return articles.filter(a => a.isPublished === true)
+        return articles.filter(a => (a as any).is_published === true)
       case 'draft':
-        return articles.filter(a => a.isPublished === false)
+        return articles.filter(a => (a as any).is_published === false)
       default:
         return articles
     }
@@ -63,7 +63,7 @@ export default function TimelineSection({ userId, articles }: TimelineSectionPro
         <div className="relative">
           <div className="space-y-8">
             {filtered.map((article) => {
-              const eventDate = new Date(article.eventDate || article.date);
+              const eventDate = new Date(article.actual_event_date || article.event_date || article.date);
               const formattedDate = `${String(eventDate.getFullYear()).slice(2)}年${eventDate.getMonth() + 1}月${eventDate.getDate()}日`;
               
               return (

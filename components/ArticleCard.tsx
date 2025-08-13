@@ -7,7 +7,20 @@ import { trackArticleLike } from '@/lib/gtag';
 
 import { ArticleCardProps } from '@/types';
 
-export default function ArticleCard({ id, title, summary, author, likes, phase, outcome, categories, date }: ArticleCardProps) {
+export default function ArticleCard(props: ArticleCardProps) {
+  const {
+    id,
+    title,
+    summary,
+    author,
+    likes,
+    phase,
+    outcome,
+    categories = [],
+    date,
+    actual_event_date,
+    event_date,
+  } = props;
   const [isLiked, setIsLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(likes);
 
@@ -103,7 +116,8 @@ export default function ArticleCard({ id, title, summary, author, likes, phase, 
             <div className="text-right">
               <div className="text-sm font-medium text-gray-900">
                 {(() => {
-                  const d = new Date(date);
+                  const raw = actual_event_date || event_date || date;
+                  const d = new Date(raw);
                   const isValid = !isNaN(d.getTime());
                   if (!isValid) return '';
                   const y = d.getFullYear();

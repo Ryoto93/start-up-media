@@ -1,23 +1,27 @@
-// 記事関連の型定義
-export interface Article {
+// Database型のインポート
+export type { Database } from './database';
+
+// フェーズの型定義
+export type Phase = '起業検討期' | '直前・直後' | '開始期' | '成長期';
+
+// 成果の型定義
+export type OutcomeType = '成功体験' | '失敗体験' | 'その他';
+
+// ビジネス領域の型定義
+export type BusinessArea = '営業' | 'マーケティング' | '事業計画' | '経理' | '開発' | '雑務';
+
+// データベースのテーブル型から派生したプロフィール型
+export interface Profile {
   id: string;
-  title: string;
-  summary: string;
-  content: string;
-  author: string;
-  authorId?: string | null;
-  likes: number;
-  phase: string;
-  outcome: string;
-  categories: string[];
-  date: string;
-  imageUrl: string;
-  eventDate: string;
-  authorProfile: AuthorProfile;
-  isPublished?: boolean | null;
+  username: string | null;
+  full_name: string | null;
+  avatar_url: string | null;
+  website: string | null;
+  created_at: string;
+  updated_at: string | null;
 }
 
-// 著者プロフィールの型定義
+// 著者プロフィール（レガシー互換用）
 export interface AuthorProfile {
   name: string;
   age: number;
@@ -28,13 +32,38 @@ export interface AuthorProfile {
   entrepreneurshipConsiderationStartDate: string;
 }
 
+// データベースのテーブル型から派生した記事型
+export interface Article {
+  id: string;
+  title: string;
+  summary: string;
+  content: string;
+  author: string;
+  author_id: string | null;
+  likes: number;
+  phase: Phase;
+  outcome: OutcomeType;
+  categories: BusinessArea[];
+  date: string; // published date
+  event_date: string | null; // legacy
+  actual_event_date: string | null; // actual event date
+  image_url: string | null;
+  created_at: string;
+  updated_at: string | null;
+}
+
+// UI用の記事型（プロフィール情報を結合）
+export interface ArticleWithProfile extends Article {
+  authorProfile?: Profile;
+}
+
 // フィルター状態の型定義
 export interface FilterState {
-  phase: string;
-  outcome: string;
-  categories: string[];
+  phase: Phase | '';
+  outcome: OutcomeType | '';
+  categories: BusinessArea[];
   searchKeyword: string;
-  sortBy: string;
+  sortBy: 'date' | 'actual_event_date' | 'likes' | 'popular' | 'newest';
 }
 
 // 記事カードのプロパティ型定義
@@ -44,19 +73,11 @@ export interface ArticleCardProps {
   summary: string;
   author: string;
   likes: number;
-  phase: string;
-  outcome: string;
-  categories: string[];
+  phase: Phase;
+  outcome: OutcomeType;
+  categories: BusinessArea[];
   date: string;
-  imageUrl: string;
-  eventDate: string;
-}
-
-// フェーズの型定義
-export type Phase = '起業検討期' | '直前・直後' | '開始期' | '成長期';
-
-// 成果の型定義
-export type OutcomeType = '成功体験' | '失敗体験' | 'その他';
-
-// ビジネス領域の型定義
-export type BusinessArea = '営業' | 'マーケティング' | '事業計画' | '経理' | '開発' | '雑務'; 
+  image_url?: string | null;
+  event_date?: string | null;
+  actual_event_date?: string | null;
+} 

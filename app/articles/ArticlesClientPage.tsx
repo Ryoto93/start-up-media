@@ -25,7 +25,7 @@ export default function ArticlesClientPage({ initialArticles }: ArticlesClientPa
 
     if (filters.categories.length > 0) {
       filtered = filtered.filter(article => 
-        filters.categories.some((category: string) => article.categories.includes(category))
+        filters.categories.some(category => article.categories.includes(category))
       );
     }
 
@@ -43,7 +43,7 @@ export default function ArticlesClientPage({ initialArticles }: ArticlesClientPa
         filtered = [...filtered].sort((a, b) => b.likes - a.likes);
         break;
       case 'date':
-        filtered = [...filtered].sort((a, b) => new Date(b.eventDate).getTime() - new Date(a.eventDate).getTime());
+        filtered = [...filtered].sort((a, b) => new Date(b.actual_event_date || b.event_date || b.date).getTime() - new Date(a.actual_event_date || a.event_date || a.date).getTime());
         break;
       case 'newest':
       default:
@@ -87,8 +87,9 @@ export default function ArticlesClientPage({ initialArticles }: ArticlesClientPa
               outcome={article.outcome}
               categories={article.categories}
               date={article.date}
-              imageUrl={article.imageUrl}
-              eventDate={article.eventDate}
+              image_url={article.image_url}
+              event_date={article.event_date ?? undefined}
+              actual_event_date={article.actual_event_date ?? undefined}
             />
           ))}
         </div>

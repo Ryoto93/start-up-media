@@ -7,7 +7,7 @@ interface FilterSectionProps {
   onFilterChange: (filters: FilterState) => void;
 }
 
-import { FilterState } from '@/types';
+import { FilterState, BusinessArea, Phase, OutcomeType } from '@/types';
 
 export default function FilterSection({ onFilterChange }: FilterSectionProps) {
   const [filters, setFilters] = useState<FilterState>({
@@ -20,10 +20,10 @@ export default function FilterSection({ onFilterChange }: FilterSectionProps) {
 
 
 
-  const phases = ['起業検討期', '直前・直後', '開始期', '成長期'];
-  const outcomes = ['成功体験', '失敗体験', 'その他'];
-  const categories = ['営業', 'マーケティング', '事業計画', '経理', '開発', '雑務'];
-  const sortOptions = [
+  const phases: Phase[] = ['起業検討期', '直前・直後', '開始期', '成長期'];
+  const outcomes: OutcomeType[] = ['成功体験', '失敗体験', 'その他'];
+  const categories: BusinessArea[] = ['営業', 'マーケティング', '事業計画', '経理', '開発', '雑務'];
+  const sortOptions: { value: FilterState['sortBy']; label: string }[] = [
     { value: 'newest', label: '新着順' },
     { value: 'popular', label: '人気順' },
     { value: 'date', label: '出来事日付順' }
@@ -52,7 +52,7 @@ export default function FilterSection({ onFilterChange }: FilterSectionProps) {
     });
   };
 
-  const handleCategoryToggle = (category: string) => {
+  const handleCategoryToggle = (category: BusinessArea) => {
     const newCategories = filters.categories.includes(category)
       ? filters.categories.filter(c => c !== category)
       : [...filters.categories, category];

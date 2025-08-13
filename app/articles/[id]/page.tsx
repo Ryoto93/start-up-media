@@ -24,8 +24,8 @@ export default async function ArticlePage({ params }: { params: { id: string } }
   let nextArticle = null;
   let position = { index: 0, total: 1 };
   let daysFromEntrepreneurship = 0;
-  if (article.authorId) {
-    const { prev, next, index, total, firstEventDate } = await getPrevNextForAuthor(article.authorId, article.id);
+  if (article.author_id) {
+    const { prev, next, index, total, firstEventDate } = await getPrevNextForAuthor(article.author_id, article.id);
     prevArticle = prev;
     nextArticle = next;
     position = { index, total };
