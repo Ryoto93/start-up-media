@@ -12,6 +12,9 @@ export interface UploadImageResult {
   success: boolean;
   publicUrl?: string;
   message: string;
+  // Added for better error surfacing and API ergonomics
+  error?: string;
+  url?: string;
 }
 
 /**
@@ -29,7 +32,8 @@ export async function uploadImage(
     if (!file || file.size === 0) {
       return {
         success: false,
-        message: 'ファイルが選択されていません。'
+        message: 'ファイルが選択されていません。',
+        error: 'ファイルが選択されていません。'
       };
     }
 
@@ -37,7 +41,8 @@ export async function uploadImage(
     if (file.size > MAX_FILE_SIZE) {
       return {
         success: false,
-        message: `ファイルサイズが大きすぎます。${MAX_FILE_SIZE / (1024 * 1024)}MB以下のファイルを選択してください。`
+        message: `ファイルサイズが大きすぎます。${MAX_FILE_SIZE / (1024 * 1024)}MB以下のファイルを選択してください。`,
+        error: `File size exceeds limit (${MAX_FILE_SIZE / (1024 * 1024)}MB).`
       };
     }
 
@@ -45,7 +50,8 @@ export async function uploadImage(
     if (!ACCEPTED_IMAGE_TYPES.includes(file.type as any)) {
       return {
         success: false,
-        message: '対応していないファイル形式です。JPEG、PNG、WebP形式のファイルを選択してください。'
+        message: '対応していないファイル形式です。JPEG、PNG、WebP形式のファイルを選択してください。',
+        error: `Unsupported content type: ${file.type}`
       };
     }
 
@@ -66,7 +72,8 @@ export async function uploadImage(
     if (!userId) {
       return {
         success: false,
-        message: 'ログインが必要です。'
+        message: 'ログインが必要です。',
+        error: 'Unauthorized: user not found in session.'
       };
     }
 
@@ -80,7 +87,7 @@ export async function uploadImage(
     const fileBuffer = await file.arrayBuffer();
 
     // Supabase Storageにアップロード
-    const { data: uploadData, error: uploadError } = await supabase.storage
+    const { error: uploadError } = await supabase.storage
       .from(bucketName)
       .upload(filePath, fileBuffer, {
         contentType: file.type,
@@ -91,7 +98,8 @@ export async function uploadImage(
       console.error('アップロードエラー:', uploadError);
       return {
         success: false,
-        message: '画像のアップロードに失敗しました。時間をおいて再度お試しください。'
+        message: '画像のアップロードに失敗しました。時間をおいて再度お試しください。',
+        error: uploadError.message
       };
     }
 
@@ -103,13 +111,15 @@ export async function uploadImage(
     if (!urlData.publicUrl) {
       return {
         success: false,
-        message: '画像の公開URLの取得に失敗しました。'
+        message: '画像の公開URLの取得に失敗しました。',
+        error: 'Failed to resolve public URL from storage.'
       };
     }
 
     return {
       success: true,
       publicUrl: urlData.publicUrl,
+      url: urlData.publicUrl,
       message: '画像のアップロードが完了しました。'
     };
 
@@ -117,7 +127,8 @@ export async function uploadImage(
     console.error('uploadImage中の予期しないエラー:', error);
     return {
       success: false,
-      message: '画像のアップロードに失敗しました。時間をおいて再度お試しください。'
+      message: '画像のアップロードに失敗しました。時間をおいて再度お試しください。',
+      error: error instanceof Error ? error.message : 'Unknown error'
     };
   }
 }
@@ -127,7 +138,7 @@ export async function uploadImage(
  * @param file アップロードするファイル
  * @returns アップロード結果と公開URL
  */
-export async function uploadArticleImage(file: File): Promise<{ success: boolean; publicUrl?: string; message: string }> {
+export async function uploadArticleImage(file: File): Promise<UploadImageResult> {
   'use server'
   
   try {
@@ -137,7 +148,8 @@ export async function uploadArticleImage(file: File): Promise<{ success: boolean
     console.error('uploadArticleImage中の予期しないエラー:', error);
     return {
       success: false,
-      message: '画像のアップロードに失敗しました。時間をおいて再度お試しください。'
+      message: '画像のアップロードに失敗しました。時間をおいて再度お試しください。',
+      error: error instanceof Error ? error.message : 'Unknown error'
     };
   }
 }

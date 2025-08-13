@@ -158,7 +158,7 @@ export default function CreateArticleForm({ serverAction }: CreateArticleFormPro
           }, 0);
         }
       } else {
-        alert(result.message || '画像のアップロードに失敗しました。');
+        alert(result.error || result.message);
       }
     } catch (error) {
       console.error('画像アップロードエラー:', error);
