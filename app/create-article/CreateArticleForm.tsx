@@ -5,7 +5,7 @@ import { useState, useRef } from 'react';
 import Link from 'next/link';
 import { useFormState, useFormStatus } from 'react-dom';
 import type { CreateArticleState } from '@/lib/data/articles-actions';
-import { uploadArticleImage } from '@/lib/data/storage';
+import { uploadArticleImage } from '@/lib/data/articles';
 
 interface ArticleFormData {
   title: string;
@@ -134,19 +134,23 @@ export default function CreateArticleForm({ serverAction }: CreateArticleFormPro
     }
   };
 
-  const handleImageUpload = async (file: File) => {
+  const handleImageInsert = async (file: File) => {
     if (!file) return;
 
     setIsUploadingImage(true);
     try {
-      const result = await uploadArticleImage(file);
-      if (result.success && result.publicUrl) {
+      const formDataToUpload = new FormData();
+      formDataToUpload.append('image', file);
+      
+      const result = await uploadArticleImage(formDataToUpload);
+      if (result.success && (result.publicUrl || result.url)) {
+        const imageUrl = result.publicUrl || result.url;
         // カーソル位置に画像を挿入
         const textarea = textareaRef.current;
         if (textarea) {
           const start = textarea.selectionStart;
           const end = textarea.selectionEnd;
-          const imageMarkdown = `\n\n![画像](${result.publicUrl})\n\n`;
+          const imageMarkdown = `\n\n![画像](${imageUrl})\n\n`;
           const newContent = formData.content.slice(0, start) + imageMarkdown + formData.content.slice(end);
           
           handleInputChange('content', newContent);
@@ -341,7 +345,7 @@ export default function CreateArticleForm({ serverAction }: CreateArticleFormPro
                 onChange={(e) => {
                   const file = e.target.files?.[0];
                   if (file) {
-                    handleImageUpload(file);
+                    handleImageInsert(file);
                   }
                 }}
                 className="hidden"

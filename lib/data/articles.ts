@@ -1,5 +1,8 @@
+'use server'
+
 import { Article, Phase, OutcomeType, BusinessArea } from '@/types';
 import { createStaticClient } from '@/lib/supabase/server';
+import { uploadImage, UploadImageResult } from '@/lib/data/storage';
 
 // 記事データの集約（モックデータ: 将来的な削除候補。現在は空配列で保持）
 const allArticles: Article[] = [];
@@ -556,6 +559,18 @@ export async function getPrevNextForAuthor(authorId: string, currentId: string):
   return { prev, next, index, total, firstEventDate };
 }
 
-// （記事内画像のアップロードは lib/data/storage.ts の uploadArticleImage(Server Action) を使用）
+export async function uploadArticleImage(formData: FormData): Promise<UploadImageResult> {
+  const file = formData.get('image') as File;
+  
+  if (!file) {
+    return {
+      success: false,
+      message: 'ファイルが選択されていません。',
+      error: 'ファイルが選択されていません。'
+    };
+  }
+
+  return await uploadImage('articles', file);
+}
 
  
