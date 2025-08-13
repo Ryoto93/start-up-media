@@ -220,11 +220,6 @@ export default function ProfileHeader({ profile, serverAction, stats }: ProfileH
                   </div>
                 ) : (
                   <>
-                    <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-1">{displayName}</h1>
-                    {username && (
-                      <p className="text-sm sm:text-base text-gray-500">@{username}</p>
-                    )}
-
                     {/* 追加のプロフィール情報を表示（保存内容の可視化） */}
                     {(profile.bio || profile.career || profile.consideration_start_date || profile.entrepreneurship_start_date) && (
                       <div className="mt-4 space-y-3 text-left">
