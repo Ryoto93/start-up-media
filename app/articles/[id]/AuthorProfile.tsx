@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 
 interface AuthorProfileProps {
   author: {
@@ -19,9 +20,11 @@ export default function AuthorProfile({ author }: AuthorProfileProps) {
       
       <div className="flex items-start space-x-6">
         <div className="flex-shrink-0">
-          <img 
+          <Image 
             src={author.avatar} 
             alt={author.name}
+            width={80}
+            height={80}
             className="w-20 h-20 rounded-full object-cover border-2 border-orange-200"
           />
         </div>
@@ -62,20 +65,7 @@ export default function AuthorProfile({ author }: AuthorProfileProps) {
       </div>
       
       <div className="mt-6 pt-6 border-t border-gray-200">
-        <div className="grid grid-cols-3 gap-4 text-center">
-          <div>
-            <div className="text-2xl font-bold text-orange-500">12</div>
-            <div className="text-sm text-gray-600">投稿記事</div>
-          </div>
-          <div>
-            <div className="text-2xl font-bold text-orange-500">1.2K</div>
-            <div className="text-sm text-gray-600">総いいね数</div>
-          </div>
-          <div>
-            <div className="text-2xl font-bold text-orange-500">89</div>
-            <div className="text-sm text-gray-600">フォロワー</div>
-          </div>
-        </div>
+        {/* 追加の著者統計はDB連携後に表示可能 */}
       </div>
     </div>
   );

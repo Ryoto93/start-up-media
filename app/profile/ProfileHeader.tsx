@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import type { Profile } from '@/lib/data/profiles';
 import { useFormState } from 'react-dom';
+import Image from 'next/image';
 
 interface ProfileStatsProps {
   articleCount: number;
@@ -81,9 +82,11 @@ export default function ProfileHeader({ profile, serverAction, stats }: ProfileH
         <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
           <div className="flex-shrink-0 self-center sm:self-start">
             <div className="relative">
-              <img
+              <Image
                 src={avatarUrl}
                 alt="プロフィール画像"
+                width={128}
+                height={128}
                 className="w-24 h-24 sm:w-32 sm:h-32 rounded-full object-cover border-4 border-orange-100"
               />
             </div>

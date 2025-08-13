@@ -102,11 +102,15 @@ export default function ArticleCard({ id, title, summary, author, likes, phase, 
             </div>
             <div className="text-right">
               <div className="text-sm font-medium text-gray-900">
-                {new Date(date).toLocaleDateString('ja-JP', { 
-                  year: 'numeric',
-                  month: 'short', 
-                  day: 'numeric' 
-                })}
+                {(() => {
+                  const d = new Date(date);
+                  const isValid = !isNaN(d.getTime());
+                  if (!isValid) return '';
+                  const y = d.getFullYear();
+                  const m = String(d.getMonth() + 1).padStart(2, '0');
+                  const da = String(d.getDate()).padStart(2, '0');
+                  return `${y}/${m}/${da}`;
+                })()}
               </div>
               <div className="text-xs text-gray-500">投稿日</div>
             </div>

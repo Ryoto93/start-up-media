@@ -2,27 +2,13 @@
 'use client';
 
 import Link from 'next/link';
+import type { Article } from '@/types';
 
 interface RelatedArticlesProps {
-  currentArticle: {
-    id: string;
-    phase: string;
-    categories: string[];
-    outcome: string;
-  };
+  relatedArticles: Article[];
 }
 
-export default function RelatedArticles({ currentArticle }: RelatedArticlesProps) {
-  const relatedArticles = allRelatedArticles.filter(article => {
-    if (article.id === currentArticle.id) return false;
-    
-    const phaseMatch = article.phase === currentArticle.phase;
-    const categoryMatch = article.categories.some(cat => currentArticle.categories.includes(cat));
-    const outcomeMatch = article.outcome === currentArticle.outcome;
-    
-    return phaseMatch || categoryMatch || outcomeMatch;
-  }).slice(0, 3);
-
+export default function RelatedArticles({ relatedArticles }: RelatedArticlesProps) {
   const phaseColors: { [key: string]: string } = {
     '起業検討期': 'bg-gradient-to-r from-blue-500 to-blue-600 text-white',
     '直前・直後': 'bg-gradient-to-r from-green-500 to-green-600 text-white',
@@ -127,50 +113,3 @@ export default function RelatedArticles({ currentArticle }: RelatedArticlesProps
     </div>
   );
 }
-
-const allRelatedArticles = [
-  {
-    id: '2',
-    title: 'IT企業役員からヘルスケア起業：規制業界で学んだ事業開発の極意',
-    summary: 'NTTデータで培った技術力を医療分野に応用。規制が厳しい業界での事業開発で直面した課題と、それを乗り越えるために必要だった視点の転換について。',
-    author: '佐藤 美咲',
-    likes: 189,
-    phase: '開始期',
-    outcome: '成功体験',
-    categories: ['事業計画', '経理'],
-    date: '2024-01-12'
-  },
-  {
-    id: '4',
-    title: 'コンサル出身者が語る：戦略立案スキルを活かした教育事業の立ち上げ',
-    summary: 'マッキンゼーでの戦略コンサルティング経験を活かし、オンライン教育プラットフォームを創業。論理的思考だけでは解決できなかった現場の課題とは？',
-    author: '鈴木 翔太',
-    likes: 198,
-    phase: '起業検討期',
-    outcome: '成功体験',
-    categories: ['事業計画', 'マーケティング'],
-    date: '2024-01-08'
-  },
-  {
-    id: '8',
-    title: '大手小売りからEコマース：オムニチャネル戦略で差別化を図る',
-    summary: 'イオングループでの店舗運営経験を活かし、リアル店舗とデジタルを融合したEコマースプラットフォームを開発。従来の小売業との違いとは？',
-    author: '森田 大輔',
-    likes: 76,
-    phase: '起業検討期',
-    outcome: '失敗体験',
-    categories: ['マーケティング', '営業'],
-    date: '2024-01-14'
-  },
-  {
-    id: '9',
-    title: '外資系投資銀行からSaaS起業：B2B営業で学んだ顧客の本質',
-    summary: 'ゴールドマン・サックスでの経験を活かし、中小企業向けの業務効率化SaaSを開発。投資銀行で培った営業スキルが、どのように起業に活かされたのか。',
-    author: '渡辺 亮太',
-    likes: 312,
-    phase: '成長期',
-    outcome: '成功体験',
-    categories: ['営業', 'マーケティング'],
-    date: '2024-01-05'
-  }
-];

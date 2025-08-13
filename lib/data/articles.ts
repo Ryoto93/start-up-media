@@ -487,6 +487,7 @@ function mapRowToArticle(row: ArticleRow, profile?: { full_name: string | null; 
     summary: row.summary,
     content: row.content,
     author: authorName,
+    authorId: row.author_id,
     likes: typeof likesCount === 'number' ? likesCount : 0,
     phase: row.phase,
     outcome: row.outcome,
@@ -769,4 +770,247 @@ export async function getAllPublishedArticles(): Promise<Article[]> {
     console.error('Unexpected error in getAllPublishedArticles:', e);
     return [];
   }
+}
+
+// トレンド記事（いいね数降順）
+export async function getTrendingArticles(limit: number): Promise<Article[]> {
+  try {
+    const supabase = createStaticClient();
+
+    let { data: rows, error } = await supabase
+      .from('articles')
+      .select('*')
+      .eq('is_published', true)
+      .order('likes_count', { ascending: false })
+      .limit(limit);
+
+    // likes_count が存在しない場合は likes でフォールバック
+    if (error && /does not exist/i.test(error.message)) {
+      const fallback = await supabase
+        .from('articles')
+        .select('*')
+        .eq('is_published', true)
+        .order('likes', { ascending: false })
+        .limit(limit);
+      rows = fallback.data as any;
+      error = fallback.error as any;
+    }
+
+    if (error) {
+      console.error('Failed to fetch trending articles:', error.message);
+      return [];
+    }
+
+    const articles = (rows ?? []) as ArticleRow[];
+    if (articles.length === 0) return [];
+
+    const authorIds = Array.from(new Set(articles.map(a => a.author_id).filter((v): v is string => !!v)));
+    let profilesMap = new Map<string, { full_name: string | null; avatar_url: string | null; username?: string | null }>();
+    if (authorIds.length > 0) {
+      const { data: profiles, error: pErr } = await supabase
+        .from('profiles')
+        .select('id, full_name, avatar_url, username')
+        .in('id', authorIds);
+      if (pErr) {
+        console.warn('Failed to fetch profiles for trending join:', pErr.message);
+      } else if (profiles) {
+        profilesMap = new Map(
+          profiles.map((p: any) => [p.id as string, { full_name: p.full_name, avatar_url: p.avatar_url, username: p.username }])
+        );
+      }
+    }
+
+    return articles.map(row => mapRowToArticle(row, row.author_id ? profilesMap.get(row.author_id) : undefined));
+  } catch (e) {
+    console.error('Unexpected error in getTrendingArticles:', e);
+    return [];
+  }
+}
+
+// 最新記事（作成日降順）
+export async function getLatestArticles(limit: number): Promise<Article[]> {
+  try {
+    const supabase = createStaticClient();
+
+    const { data: rows, error } = await supabase
+      .from('articles')
+      .select('*')
+      .eq('is_published', true)
+      .order('created_at', { ascending: false })
+      .limit(limit);
+
+    if (error) {
+      console.error('Failed to fetch latest articles:', error.message);
+      return [];
+    }
+
+    const articles = (rows ?? []) as ArticleRow[];
+    if (articles.length === 0) return [];
+
+    const authorIds = Array.from(new Set(articles.map(a => a.author_id).filter((v): v is string => !!v)));
+    let profilesMap = new Map<string, { full_name: string | null; avatar_url: string | null; username?: string | null }>();
+    if (authorIds.length > 0) {
+      const { data: profiles, error: pErr } = await supabase
+        .from('profiles')
+        .select('id, full_name, avatar_url, username')
+        .in('id', authorIds);
+      if (pErr) {
+        console.warn('Failed to fetch profiles for latest join:', pErr.message);
+      } else if (profiles) {
+        profilesMap = new Map(
+          profiles.map((p: any) => [p.id as string, { full_name: p.full_name, avatar_url: p.avatar_url, username: p.username }])
+        );
+      }
+    }
+
+    return articles.map(row => mapRowToArticle(row, row.author_id ? profilesMap.get(row.author_id) : undefined));
+  } catch (e) {
+    console.error('Unexpected error in getLatestArticles:', e);
+    return [];
+  }
+}
+
+// 人気記事（いいね総数降順）
+export async function getPopularArticles(limit: number): Promise<Article[]> {
+  try {
+    const supabase = createStaticClient();
+
+    let { data: rows, error } = await supabase
+      .from('articles')
+      .select('*')
+      .eq('is_published', true)
+      .order('likes_count', { ascending: false })
+      .limit(limit);
+
+    if (error && /does not exist/i.test(error.message)) {
+      const fallback = await supabase
+        .from('articles')
+        .select('*')
+        .eq('is_published', true)
+        .order('likes', { ascending: false })
+        .limit(limit);
+      rows = fallback.data as any;
+      error = fallback.error as any;
+    }
+
+    if (error) {
+      console.error('Failed to fetch popular articles:', error.message);
+      return [];
+    }
+
+    const articles = (rows ?? []) as ArticleRow[];
+    if (articles.length === 0) return [];
+
+    const authorIds = Array.from(new Set(articles.map(a => a.author_id).filter((v): v is string => !!v)));
+    let profilesMap = new Map<string, { full_name: string | null; avatar_url: string | null; username?: string | null }>();
+    if (authorIds.length > 0) {
+      const { data: profiles, error: pErr } = await supabase
+        .from('profiles')
+        .select('id, full_name, avatar_url, username')
+        .in('id', authorIds);
+      if (pErr) {
+        console.warn('Failed to fetch profiles for popular join:', pErr.message);
+      } else if (profiles) {
+        profilesMap = new Map(
+          profiles.map((p: any) => [p.id as string, { full_name: p.full_name, avatar_url: p.avatar_url, username: p.username }])
+        );
+      }
+    }
+
+    return articles.map(row => mapRowToArticle(row, row.author_id ? profilesMap.get(row.author_id) : undefined));
+  } catch (e) {
+    console.error('Unexpected error in getPopularArticles:', e);
+    return [];
+  }
+}
+
+// Fetch related articles by current article id (phase/cateogries/outcome match). Excludes self, limits to 3.
+export async function getRelatedArticlesById(currentId: string, limit: number = 3): Promise<Article[]> {
+  try {
+    const supabase = createStaticClient();
+
+    // get the current row first
+    const { data: currentRow, error: curErr } = await supabase
+      .from('articles')
+      .select('*')
+      .eq('id', currentId)
+      .maybeSingle();
+    if (curErr || !currentRow) return [];
+
+    const c = currentRow as ArticleRow;
+    const phase = c.phase;
+    const outcome = c.outcome;
+    const categories = c.categories ?? [];
+
+    // Collect candidates by simple unions (phase, outcome, categories overlap)
+    const results: ArticleRow[] = [];
+
+    // by phase
+    const { data: byPhase } = await supabase
+      .from('articles')
+      .select('*')
+      .neq('id', currentId)
+      .eq('phase', phase)
+      .limit(limit * 2);
+    if (byPhase) results.push(...(byPhase as any));
+
+    // by outcome
+    const { data: byOutcome } = await supabase
+      .from('articles')
+      .select('*')
+      .neq('id', currentId)
+      .eq('outcome', outcome)
+      .limit(limit * 2);
+    if (byOutcome) results.push(...(byOutcome as any));
+
+    // by category overlap (if categories exist)
+    if (categories.length > 0) {
+      const { data: byCats } = await supabase
+        .from('articles')
+        .select('*')
+        .neq('id', currentId)
+        .overlaps('categories', categories as any)
+        .limit(limit * 2);
+      if (byCats) results.push(...(byCats as any));
+    }
+
+    // Deduplicate, exclude self, prefer newer date
+    const dedup = new Map<string, ArticleRow>();
+    for (const r of results) {
+      if (r.id === currentId) continue;
+      const existing = dedup.get(r.id);
+      if (!existing) dedup.set(r.id, r as ArticleRow);
+    }
+    const unique = Array.from(dedup.values()).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    const limited = unique.slice(0, limit);
+
+    // Fetch author profiles
+    const authorIds = Array.from(new Set(limited.map(a => a.author_id).filter((v): v is string => !!v)));
+    let profilesMap = new Map<string, { full_name: string | null; avatar_url: string | null }>();
+    if (authorIds.length > 0) {
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('id, full_name, avatar_url')
+        .in('id', authorIds);
+      if (profiles) {
+        profilesMap = new Map(profiles.map((p: any) => [p.id as string, { full_name: p.full_name, avatar_url: p.avatar_url }]));
+      }
+    }
+
+    return limited.map((row) => mapRowToArticle(row, row.author_id ? profilesMap.get(row.author_id) : undefined));
+  } catch (e) {
+    console.error('Unexpected error in getRelatedArticlesById:', e);
+    return [];
+  }
+}
+
+// Compute prev/next for an author's articles (chronological by event_date ascending)
+export async function getPrevNextForAuthor(authorId: string, currentId: string): Promise<{ prev: Article | null; next: Article | null; index: number; total: number; firstEventDate?: string | null; }> {
+  const list = await getArticlesByAuthorId(authorId);
+  const total = list.length;
+  const index = Math.max(0, list.findIndex(a => a.id === currentId));
+  const prev = index > 0 ? list[index - 1] : null;
+  const next = index < total - 1 && index >= 0 ? list[index + 1] : null;
+  const firstEventDate = total > 0 ? list[0].eventDate : null;
+  return { prev, next, index, total, firstEventDate };
 } 

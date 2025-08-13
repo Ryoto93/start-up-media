@@ -2,14 +2,16 @@
 import Header from '@/components/Header';
 import ArticleCard from '@/components/ArticleCard';
 import Link from 'next/link';
-import { getAllPublishedArticles } from '@/lib/data/articles';
+import { getAllPublishedArticles, getTrendingArticles, getLatestArticles, getPopularArticles } from '@/lib/data/articles';
+import Image from 'next/image';
 
 export default async function Home() {
-  const all = await getAllPublishedArticles();
-  const latest = all.slice(0, 12);
-  // ひとまず最新記事をトレンド/人気にも再利用（将来は専用ロジックに分割）
-  const trendingArticles = latest.slice(0, 4);
-  const popularArticles = latest.slice(4, 8);
+  const [all, trendingArticles, latest, popularArticles] = await Promise.all([
+    getAllPublishedArticles(),
+    getTrendingArticles(4),
+    getLatestArticles(4),
+    getPopularArticles(4),
+  ]);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -128,9 +130,11 @@ export default async function Home() {
 
                 {/* Main Image */}
                 <div className="relative rounded-3xl overflow-hidden shadow-2xl">
-                  <img 
-                    src="https://readdy.ai/api/search-image?query=Diverse%20group%20of%20young%20entrepreneurs%20collaborating%20in%20bright%20modern%20coworking%20space%2C%20people%20from%20different%20backgrounds%20working%20together%20on%20laptops%20and%20tablets%2C%20natural%20lighting%20streaming%20through%20large%20windows%2C%20plants%20and%20contemporary%20furniture%2C%20warm%20and%20welcoming%20atmosphere%20with%20orange%20accent%20colors%2C%20professional%20photography%20with%20soft%20focus%20background&width=600&height=500&seq=hero-main&orientation=portrait"
+                  <Image 
+                    src="https://readdy.ai/api/search-image?query=Diverse%20group%20of%20young%20entrepreneurs%20collaborating%20in%20bright%20modern%20coworking%20space%2C%20people%20from%20different%20backgrounds%20working%20together%20on%20laptops%20and%20tablets%2C%20natural%20lighting%20streaming%20through%20large%20windows%2C%20plants%20and%20contemporary%20furniture%2C%20warm%20and%20welcoming%20atmosphere%20with%20orange%20accent%20colors%2C%20professional%20photography%20with%20soft%20focus%20background&width=1200&height=500&seq=hero-main&orientation=portrait"
                     alt="起業家コミュニティ"
+                    width={1200}
+                    height={500}
                     className="w-full h-[500px] object-cover object-center"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent"></div>

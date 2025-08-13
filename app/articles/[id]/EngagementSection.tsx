@@ -1,9 +1,9 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 
 interface EngagementSectionProps {
-  articleId: string;
   initialLikes: number;
 }
 
@@ -16,10 +16,10 @@ interface Comment {
   avatar: string;
 }
 
-export default function EngagementSection({ articleId, initialLikes }: EngagementSectionProps) {
+export default function EngagementSection({ initialLikes }: EngagementSectionProps) {
   const [isLiked, setIsLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(initialLikes);
-  const [comments, setComments] = useState<Comment[]>(initialComments);
+  const [comments, setComments] = useState<Comment[]>([]);
   const [newComment, setNewComment] = useState('');
   const [showAllComments, setShowAllComments] = useState(false);
 
@@ -111,9 +111,11 @@ export default function EngagementSection({ articleId, initialLikes }: Engagemen
           <div className="space-y-6">
             {displayedComments.map((comment) => (
               <div key={comment.id} className="flex space-x-4 p-4 bg-gray-50 rounded-lg">
-                <img 
+                <Image 
                   src={comment.avatar} 
                   alt={comment.author}
+                  width={40}
+                  height={40}
                   className="w-10 h-10 rounded-full object-cover flex-shrink-0"
                 />
                 <div className="flex-1">
@@ -149,37 +151,4 @@ export default function EngagementSection({ articleId, initialLikes }: Engagemen
   );
 }
 
-const initialComments: Comment[] = [
-  {
-    id: '1',
-    author: '起業検討中の山田',
-    content: 'とても参考になりました！特に顧客との直接対話の重要性について、改めて考えさせられました。私も製造業出身なので、同じような思い込みを持っていたかもしれません。',
-    date: '2024-01-16',
-    likes: 12,
-    avatar: 'https://readdy.ai/api/search-image?query=Young%20Japanese%20businessman%20with%20thoughtful%20expression%2C%20professional%20headshot%20style%2C%20clean%20background%20with%20warm%20lighting%2C%20startup%20entrepreneur%20portrait&width=40&height=40&seq=commenter1&orientation=squarish'
-  },
-  {
-    id: '2',
-    author: '食品業界の佐藤',
-    content: '食品業界での起業は本当に大変ですよね。地域密着型のアプローチは正解だと思います。私たちも似たような課題に直面しているので、とても共感できます。',
-    date: '2024-01-17',
-    likes: 8,
-    avatar: 'https://readdy.ai/api/search-image?query=Middle-aged%20Japanese%20businesswoman%20with%20friendly%20smile%2C%20professional%20headshot%20style%2C%20clean%20background%20with%20soft%20lighting%2C%20food%20industry%20professional%20portrait&width=40&height=40&seq=commenter2&orientation=squarish'
-  },
-  {
-    id: '3',
-    author: 'マーケティング担当者',
-    content: '失敗から学んだマーケティング手法、具体的で実践的ですね。小ロット・高頻度での仮説検証は、どの業界でも応用できそうです。続報も楽しみにしています！',
-    date: '2024-01-18',
-    likes: 15,
-    avatar: 'https://readdy.ai/api/search-image?query=Professional%20Japanese%20marketing%20specialist%20with%20confident%20expression%2C%20modern%20business%20headshot%2C%20clean%20white%20background%20with%20professional%20lighting&width=40&height=40&seq=commenter3&orientation=squarish'
-  },
-  {
-    id: '4',
-    author: 'トヨタOBの鈴木',
-    content: '同じトヨタ出身として、とても興味深く読ませていただきました。製造業で培った品質へのこだわりを、どう食品業界で活かしていくのか、今後の展開が楽しみです。',
-    date: '2024-01-19',
-    likes: 6,
-    avatar: 'https://readdy.ai/api/search-image?query=Senior%20Japanese%20businessman%20with%20wise%20expression%2C%20professional%20corporate%20headshot%20style%2C%20clean%20background%20with%20warm%20professional%20lighting&width=40&height=40&seq=commenter4&orientation=squarish'
-  }
-];
+// Comments backend is not implemented yet; start with empty state to avoid hardcoded mock data.
