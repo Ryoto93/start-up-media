@@ -42,20 +42,6 @@ export default function AccountSetupForm({ serverAction }: AccountSetupFormProps
       </div>
 
       <div>
-        <label htmlFor="full_name" className="block text-sm font-medium text-gray-700 mb-2">
-          フルネーム <span className="ml-2 inline-flex items-center rounded bg-red-50 px-2 py-0.5 text-xs font-semibold text-red-600 ring-1 ring-inset ring-red-200">必須</span>
-        </label>
-        <input
-          type="text"
-          id="full_name"
-          name="full_name"
-          required
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-          placeholder="フルネームを入力してください"
-        />
-      </div>
-
-      <div>
         <label htmlFor="age" className="block text-sm font-medium text-gray-700 mb-2">
           年齢 <span className="ml-2 inline-flex items-center rounded bg-gray-50 px-2 py-0.5 text-xs font-semibold text-gray-600 ring-1 ring-inset ring-gray-200">任意</span>
         </label>
