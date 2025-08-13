@@ -7,6 +7,7 @@ export interface Profile {
   username: string | null;
   full_name: string | null;
   avatar_url: string | null;
+  age: number | null;
   career: string | null;
   bio: string | null;
   consideration_start_date: string | null;

@@ -106,8 +106,8 @@ export default function ProfileHeader({ profile, serverAction, stats }: ProfileH
             {!isEditing && (
               <div className="mb-4 sm:mb-6">
                 <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-1">{displayName}</h1>
-                {username && (
-                  <p className="text-sm sm:text-base text-gray-500">@{username}</p>
+                {typeof profile.age === 'number' && profile.age > 0 && (
+                  <p className="text-sm sm:text-base text-gray-500">{profile.age}歳</p>
                 )}
 
                 {/* 統計表示 */}
