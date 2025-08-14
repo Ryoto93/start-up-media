@@ -63,7 +63,7 @@ export interface Article {
 
 // UI用の記事型（プロフィール情報を結合）
 export interface ArticleWithProfile extends Article {
-  authorProfile?: Profile;
+  authorProfile?: ProfileDetails;
 }
 
 // フィルター状態の型定義

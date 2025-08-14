@@ -1,6 +1,6 @@
 'use server'
 
-import { Article, Phase, OutcomeType, BusinessArea } from '@/types';
+import { Article, Phase, OutcomeType, BusinessArea, ArticleWithProfile, ProfileDetails } from '@/types';
 import { createStaticClient } from '@/lib/supabase/server';
 import { uploadImage, UploadImageResult } from '@/lib/data/storage';
 
@@ -112,11 +112,46 @@ export async function getAllArticles(): Promise<Article[]> {
 }
 
 // 指定されたIDの記事を取得する関数（Supabase）
-export async function getArticleById(id: string): Promise<Article | null> {
+export async function getArticleById(id: string): Promise<ArticleWithProfile | null> {
   try {
-    // Public read
     const supabase = createStaticClient();
 
+    // 優先: プロファイルJOINで取得（author_id -> profiles.id）
+    const { data: joined, error: joinError } = await supabase
+      .from('articles')
+      .select(`
+        *,
+        authorProfile:profiles!articles_author_id_fkey(
+          id, username, full_name, avatar_url, career, bio, age, consideration_start_date, entrepreneurship_start_date
+        )
+      `)
+      .eq('id', id)
+      .maybeSingle();
+
+    if (!joinError && joined) {
+      const row = joined as any;
+      const article = mapRowToArticle(row as ArticleRow, row.authorProfile ? { full_name: row.authorProfile.full_name, avatar_url: row.authorProfile.avatar_url, username: row.authorProfile.username } : undefined);
+      const authorProfile: ProfileDetails | undefined = row.authorProfile
+        ? {
+            id: row.authorProfile.id,
+            username: row.authorProfile.username ?? null,
+            full_name: row.authorProfile.full_name ?? null,
+            avatar_url: row.authorProfile.avatar_url ?? null,
+            website: null,
+            created_at: new Date().toISOString(),
+            updated_at: null,
+            age: row.authorProfile.age ?? null,
+            career: row.authorProfile.career ?? null,
+            bio: row.authorProfile.bio ?? null,
+            consideration_start_date: row.authorProfile.consideration_start_date ?? null,
+            entrepreneurship_start_date: row.authorProfile.entrepreneurship_start_date ?? null,
+          }
+        : undefined;
+
+      return { ...article, authorProfile };
+    }
+
+    // フォールバック: 単体取得 + プロファイル別取得
     const { data: row, error } = await supabase
       .from('articles')
       .select('*')
@@ -130,20 +165,21 @@ export async function getArticleById(id: string): Promise<Article | null> {
 
     if (!row) return null;
 
-    let profile: { full_name: string | null; avatar_url: string | null } | undefined = undefined;
+    let authorProfile: ProfileDetails | undefined = undefined;
     const authorId = (row as ArticleRow).author_id;
     if (authorId) {
       const { data: p, error: pErr } = await supabase
         .from('profiles')
-        .select('full_name, avatar_url')
+        .select('id, username, full_name, avatar_url, career, bio, age, consideration_start_date, entrepreneurship_start_date, created_at, updated_at, website')
         .eq('id', authorId)
         .maybeSingle();
       if (!pErr && p) {
-        profile = { full_name: (p as any).full_name, avatar_url: (p as any).avatar_url };
+        authorProfile = p as unknown as ProfileDetails;
       }
     }
 
-    return mapRowToArticle(row as ArticleRow, profile);
+    const article = mapRowToArticle(row as ArticleRow, authorProfile ? { full_name: authorProfile.full_name, avatar_url: authorProfile.avatar_url, username: authorProfile.username ?? undefined } : undefined);
+    return { ...article, authorProfile };
   } catch (e) {
     console.error('Unexpected error in getArticleById:', e);
     return null;
@@ -389,6 +425,7 @@ export async function getLatestArticles(limit: number): Promise<Article[]> {
     }
 
     const articles = (rows ?? []) as ArticleRow[];
+
     if (articles.length === 0) return [];
 
     const authorIds = Array.from(new Set(articles.map(a => a.author_id).filter((v): v is string => !!v)));

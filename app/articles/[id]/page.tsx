@@ -2,6 +2,7 @@
 import { notFound } from 'next/navigation';
 import ArticleDetail from './ArticleDetail';
 import { getArticleById, getAllArticleIds, getRelatedArticlesById, getPrevNextForAuthor } from '@/lib/data/articles';
+import { ArticleWithProfile } from '@/types';
 
 export async function generateStaticParams() {
   const articles = await getAllArticleIds();
@@ -37,5 +38,5 @@ export default async function ArticlePage({ params }: { params: { id: string } }
     }
   }
 
-  return <ArticleDetail initialArticle={article} relatedArticles={relatedArticles} navigation={{ prevArticle, nextArticle, position, daysFromEntrepreneurship }} />;
+  return <ArticleDetail initialArticle={article as ArticleWithProfile} relatedArticles={relatedArticles} navigation={{ prevArticle, nextArticle, position, daysFromEntrepreneurship }} />;
 }
