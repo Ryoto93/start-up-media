@@ -21,6 +21,15 @@ export interface Profile {
   updated_at: string | null;
 }
 
+// プロフィール詳細（UIで利用される拡張フィールドを含む）
+export interface ProfileDetails extends Profile {
+  age?: number | null;
+  career?: string | null;
+  bio?: string | null;
+  consideration_start_date?: string | null;
+  entrepreneurship_start_date?: string | null;
+}
+
 // 著者プロフィール（レガシー互換用）
 export interface AuthorProfile {
   name: string;
