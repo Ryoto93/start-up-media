@@ -311,13 +311,16 @@ export async function getArticlesByAuthorId(authorId: string): Promise<Article[]
 }
 
 // NEW: 公開記事すべて（作成日降順）
-export async function getAllPublishedArticles(): Promise<Article[]> {
+export async function getAllPublishedArticles(): Promise<ArticleWithProfile[]> {
   try {
     const supabase = createStaticClient();
 
     const { data: rows, error } = await supabase
       .from('articles')
-      .select('*')
+      .select(`
+        *,
+        authorProfile:profiles!articles_author_id_fkey(id, username, full_name, avatar_url)
+      `)
       .eq('is_published', true)
       .order('created_at', { ascending: false });
 
@@ -326,26 +329,22 @@ export async function getAllPublishedArticles(): Promise<Article[]> {
       return [];
     }
 
-    const articles = (rows ?? []) as ArticleRow[];
-    if (articles.length === 0) return [];
-
-    const authorIds = Array.from(new Set(articles.map(a => a.author_id).filter((v): v is string => !!v)));
-    let profilesMap = new Map<string, { full_name: string | null; avatar_url: string | null; username?: string | null }>();
-    if (authorIds.length > 0) {
-      const { data: profiles, error: pErr } = await supabase
-        .from('profiles')
-        .select('id, full_name, avatar_url, username')
-        .in('id', authorIds);
-      if (pErr) {
-        console.warn('Failed to fetch profiles for published join:', pErr.message);
-      } else if (profiles) {
-        profilesMap = new Map(
-          profiles.map((p: any) => [p.id as string, { full_name: p.full_name, avatar_url: p.avatar_url, username: p.username }])
-        );
-      }
-    }
-
-    return articles.map(row => mapRowToArticle(row, row.author_id ? profilesMap.get(row.author_id) : undefined));
+    const articles = (rows ?? []) as any[];
+    return articles.map((row) => {
+      const article = mapRowToArticle(row as ArticleRow, row.authorProfile ? { full_name: row.authorProfile.full_name, avatar_url: row.authorProfile.avatar_url, username: row.authorProfile.username } : undefined);
+      const authorProfile: ProfileDetails | undefined = row.authorProfile
+        ? {
+            id: row.authorProfile.id,
+            username: row.authorProfile.username ?? null,
+            full_name: row.authorProfile.full_name ?? null,
+            avatar_url: row.authorProfile.avatar_url ?? null,
+            website: null,
+            created_at: new Date().toISOString(),
+            updated_at: null,
+          }
+        : undefined;
+      return { ...article, authorProfile };
+    });
   } catch (e) {
     console.error('Unexpected error in getAllPublishedArticles:', e);
     return [];
@@ -353,22 +352,28 @@ export async function getAllPublishedArticles(): Promise<Article[]> {
 }
 
 // トレンド記事（いいね数降順）
-export async function getTrendingArticles(limit: number): Promise<Article[]> {
+export async function getTrendingArticles(limit: number): Promise<ArticleWithProfile[]> {
   try {
     const supabase = createStaticClient();
 
     let { data: rows, error } = await supabase
       .from('articles')
-      .select('*')
+      .select(`
+        *,
+        authorProfile:profiles!articles_author_id_fkey(id, username, full_name, avatar_url)
+      `)
       .eq('is_published', true)
       .order('likes_count', { ascending: false })
       .limit(limit);
 
-    // likes_count が存在しない場合は likes でフォールバック
+    // likes_count が存在しない場合は likes でフォールバック（JOINは維持）
     if (error && /does not exist/i.test(error.message)) {
       const fallback = await supabase
         .from('articles')
-        .select('*')
+        .select(`
+          *,
+          authorProfile:profiles!articles_author_id_fkey(id, username, full_name, avatar_url)
+        `)
         .eq('is_published', true)
         .order('likes', { ascending: false })
         .limit(limit);
@@ -381,26 +386,22 @@ export async function getTrendingArticles(limit: number): Promise<Article[]> {
       return [];
     }
 
-    const articles = (rows ?? []) as ArticleRow[];
-    if (articles.length === 0) return [];
-
-    const authorIds = Array.from(new Set(articles.map(a => a.author_id).filter((v): v is string => !!v)));
-    let profilesMap = new Map<string, { full_name: string | null; avatar_url: string | null; username?: string | null }>();
-    if (authorIds.length > 0) {
-      const { data: profiles, error: pErr } = await supabase
-        .from('profiles')
-        .select('id, full_name, avatar_url, username')
-        .in('id', authorIds);
-      if (pErr) {
-        console.warn('Failed to fetch profiles for trending join:', pErr.message);
-      } else if (profiles) {
-        profilesMap = new Map(
-          profiles.map((p: any) => [p.id as string, { full_name: p.full_name, avatar_url: p.avatar_url, username: p.username }])
-        );
-      }
-    }
-
-    return articles.map(row => mapRowToArticle(row, row.author_id ? profilesMap.get(row.author_id) : undefined));
+    const articles = (rows ?? []) as any[];
+    return articles.map((row) => {
+      const article = mapRowToArticle(row as ArticleRow, row.authorProfile ? { full_name: row.authorProfile.full_name, avatar_url: row.authorProfile.avatar_url, username: row.authorProfile.username } : undefined);
+      const authorProfile: ProfileDetails | undefined = row.authorProfile
+        ? {
+            id: row.authorProfile.id,
+            username: row.authorProfile.username ?? null,
+            full_name: row.authorProfile.full_name ?? null,
+            avatar_url: row.authorProfile.avatar_url ?? null,
+            website: null,
+            created_at: new Date().toISOString(),
+            updated_at: null,
+          }
+        : undefined;
+      return { ...article, authorProfile };
+    });
   } catch (e) {
     console.error('Unexpected error in getTrendingArticles:', e);
     return [];
@@ -408,13 +409,16 @@ export async function getTrendingArticles(limit: number): Promise<Article[]> {
 }
 
 // 最新記事（作成日降順）
-export async function getLatestArticles(limit: number): Promise<Article[]> {
+export async function getLatestArticles(limit: number): Promise<ArticleWithProfile[]> {
   try {
     const supabase = createStaticClient();
 
     const { data: rows, error } = await supabase
       .from('articles')
-      .select('*')
+      .select(`
+        *,
+        authorProfile:profiles!articles_author_id_fkey(id, username, full_name, avatar_url)
+      `)
       .eq('is_published', true)
       .order('created_at', { ascending: false })
       .limit(limit);
@@ -424,27 +428,22 @@ export async function getLatestArticles(limit: number): Promise<Article[]> {
       return [];
     }
 
-    const articles = (rows ?? []) as ArticleRow[];
-
-    if (articles.length === 0) return [];
-
-    const authorIds = Array.from(new Set(articles.map(a => a.author_id).filter((v): v is string => !!v)));
-    let profilesMap = new Map<string, { full_name: string | null; avatar_url: string | null; username?: string | null }>();
-    if (authorIds.length > 0) {
-      const { data: profiles, error: pErr } = await supabase
-        .from('profiles')
-        .select('id, full_name, avatar_url, username')
-        .in('id', authorIds);
-      if (pErr) {
-        console.warn('Failed to fetch profiles for latest join:', pErr.message);
-      } else if (profiles) {
-        profilesMap = new Map(
-          profiles.map((p: any) => [p.id as string, { full_name: p.full_name, avatar_url: p.avatar_url, username: p.username }])
-        );
-      }
-    }
-
-    return articles.map(row => mapRowToArticle(row, row.author_id ? profilesMap.get(row.author_id) : undefined));
+    const articles = (rows ?? []) as any[];
+    return articles.map((row) => {
+      const article = mapRowToArticle(row as ArticleRow, row.authorProfile ? { full_name: row.authorProfile.full_name, avatar_url: row.authorProfile.avatar_url, username: row.authorProfile.username } : undefined);
+      const authorProfile: ProfileDetails | undefined = row.authorProfile
+        ? {
+            id: row.authorProfile.id,
+            username: row.authorProfile.username ?? null,
+            full_name: row.authorProfile.full_name ?? null,
+            avatar_url: row.authorProfile.avatar_url ?? null,
+            website: null,
+            created_at: new Date().toISOString(),
+            updated_at: null,
+          }
+        : undefined;
+      return { ...article, authorProfile };
+    });
   } catch (e) {
     console.error('Unexpected error in getLatestArticles:', e);
     return [];
@@ -452,13 +451,16 @@ export async function getLatestArticles(limit: number): Promise<Article[]> {
 }
 
 // 人気記事（いいね総数降順）
-export async function getPopularArticles(limit: number): Promise<Article[]> {
+export async function getPopularArticles(limit: number): Promise<ArticleWithProfile[]> {
   try {
     const supabase = createStaticClient();
 
     let { data: rows, error } = await supabase
       .from('articles')
-      .select('*')
+      .select(`
+        *,
+        authorProfile:profiles!articles_author_id_fkey(id, username, full_name, avatar_url)
+      `)
       .eq('is_published', true)
       .order('likes_count', { ascending: false })
       .limit(limit);
@@ -466,7 +468,10 @@ export async function getPopularArticles(limit: number): Promise<Article[]> {
     if (error && /does not exist/i.test(error.message)) {
       const fallback = await supabase
         .from('articles')
-        .select('*')
+        .select(`
+          *,
+          authorProfile:profiles!articles_author_id_fkey(id, username, full_name, avatar_url)
+        `)
         .eq('is_published', true)
         .order('likes', { ascending: false })
         .limit(limit);
@@ -479,26 +484,22 @@ export async function getPopularArticles(limit: number): Promise<Article[]> {
       return [];
     }
 
-    const articles = (rows ?? []) as ArticleRow[];
-    if (articles.length === 0) return [];
-
-    const authorIds = Array.from(new Set(articles.map(a => a.author_id).filter((v): v is string => !!v)));
-    let profilesMap = new Map<string, { full_name: string | null; avatar_url: string | null; username?: string | null }>();
-    if (authorIds.length > 0) {
-      const { data: profiles, error: pErr } = await supabase
-        .from('profiles')
-        .select('id, full_name, avatar_url, username')
-        .in('id', authorIds);
-      if (pErr) {
-        console.warn('Failed to fetch profiles for popular join:', pErr.message);
-      } else if (profiles) {
-        profilesMap = new Map(
-          profiles.map((p: any) => [p.id as string, { full_name: p.full_name, avatar_url: p.avatar_url, username: p.username }])
-        );
-      }
-    }
-
-    return articles.map(row => mapRowToArticle(row, row.author_id ? profilesMap.get(row.author_id) : undefined));
+    const articles = (rows ?? []) as any[];
+    return articles.map((row) => {
+      const article = mapRowToArticle(row as ArticleRow, row.authorProfile ? { full_name: row.authorProfile.full_name, avatar_url: row.authorProfile.avatar_url, username: row.authorProfile.username } : undefined);
+      const authorProfile: ProfileDetails | undefined = row.authorProfile
+        ? {
+            id: row.authorProfile.id,
+            username: row.authorProfile.username ?? null,
+            full_name: row.authorProfile.full_name ?? null,
+            avatar_url: row.authorProfile.avatar_url ?? null,
+            website: null,
+            created_at: new Date().toISOString(),
+            updated_at: null,
+          }
+        : undefined;
+      return { ...article, authorProfile };
+    });
   } catch (e) {
     console.error('Unexpected error in getPopularArticles:', e);
     return [];

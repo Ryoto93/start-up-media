@@ -3,6 +3,7 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
+import Image from 'next/image';
 import { trackArticleLike } from '@/lib/gtag';
 
 import { ArticleCardProps } from '@/types';
@@ -18,8 +19,10 @@ export default function ArticleCard(props: ArticleCardProps) {
     outcome,
     categories = [],
     date,
+    created_at,
     actual_event_date,
     event_date,
+    authorProfile,
   } = props;
   const [isLiked, setIsLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(likes);
@@ -30,7 +33,6 @@ export default function ArticleCard(props: ArticleCardProps) {
     setIsLiked(!isLiked);
     setLikeCount(isLiked ? likeCount - 1 : likeCount + 1);
     
-    // Google Analytics でいいねイベントを追跡
     if (!isLiked) {
       trackArticleLike(id, title);
     }
@@ -54,6 +56,19 @@ export default function ArticleCard(props: ArticleCardProps) {
     '失敗体験': 'ri-error-warning-line',
     'その他': 'ri-bookmark-line',
   };
+
+  const formatYmd = (iso?: string | null) => {
+    if (!iso) return '';
+    const d = new Date(iso);
+    if (isNaN(d.getTime())) return '';
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const da = String(d.getDate()).padStart(2, '0');
+    return `${y}/${m}/${da}`;
+  };
+
+  const displayName = authorProfile?.full_name || authorProfile?.username || author;
+  const avatarSrc = authorProfile?.avatar_url || '/images/default-avatar.jpg';
 
   return (
     <Link href={`/articles/${id}`}>
@@ -105,28 +120,19 @@ export default function ArticleCard(props: ArticleCardProps) {
 
           <div className="flex items-center justify-between pt-4 border-t border-gray-100">
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-orange-400 to-orange-600 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-sm">
-                {author.charAt(0)}
+              <div className="w-10 h-10 rounded-full overflow-hidden bg-gray-100 border border-gray-200">
+                <Image src={avatarSrc} alt={displayName} width={40} height={40} className="w-10 h-10 object-cover" />
               </div>
               <div>
-                <div className="font-semibold text-gray-900">{author}</div>
+                <div className="font-semibold text-gray-900">{displayName}</div>
                 <div className="text-sm text-gray-500">起業家</div>
               </div>
             </div>
-            <div className="text-right">
-              <div className="text-sm font-medium text-gray-900">
-                {(() => {
-                  const raw = actual_event_date || event_date || date;
-                  const d = new Date(raw);
-                  const isValid = !isNaN(d.getTime());
-                  if (!isValid) return '';
-                  const y = d.getFullYear();
-                  const m = String(d.getMonth() + 1).padStart(2, '0');
-                  const da = String(d.getDate()).padStart(2, '0');
-                  return `${y}/${m}/${da}`;
-                })()}
-              </div>
+            <div className="text-right space-y-1">
+              <div className="text-xs text-gray-500">出来事</div>
+              <div className="text-sm font-medium text-gray-900">{formatYmd(actual_event_date || event_date)}</div>
               <div className="text-xs text-gray-500">投稿日</div>
+              <div className="text-sm font-medium text-gray-900">{formatYmd(created_at || date)}</div>
             </div>
           </div>
         </div>

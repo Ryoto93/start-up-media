@@ -80,13 +80,15 @@ export interface ArticleCardProps {
   id: string;
   title: string;
   summary: string;
-  author: string;
+  author: string; // fallback 表示用
   likes: number;
   phase: Phase;
   outcome: OutcomeType;
   categories: BusinessArea[];
   date: string;
+  created_at: string;
   image_url?: string | null;
   event_date?: string | null;
   actual_event_date?: string | null;
+  authorProfile?: ProfileDetails;
 } 

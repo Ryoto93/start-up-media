@@ -2,11 +2,11 @@
 
 import ArticleCard from '@/components/ArticleCard';
 import FilterSection from '@/components/FilterSection';
-import { FilterState, Article } from '@/types';
+import { FilterState, ArticleWithProfile } from '@/types';
 import { useState } from 'react';
 
 interface ArticlesClientPageProps {
-  initialArticles: Article[];
+  initialArticles: ArticleWithProfile[];
 }
 
 export default function ArticlesClientPage({ initialArticles }: ArticlesClientPageProps) {
@@ -87,9 +87,11 @@ export default function ArticlesClientPage({ initialArticles }: ArticlesClientPa
               outcome={article.outcome}
               categories={article.categories}
               date={article.date}
+              created_at={article.created_at}
               image_url={article.image_url}
               event_date={article.event_date ?? undefined}
               actual_event_date={article.actual_event_date ?? undefined}
+              authorProfile={article.authorProfile}
             />
           ))}
         </div>
