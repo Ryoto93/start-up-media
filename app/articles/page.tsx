@@ -22,3 +22,4 @@ export default async function ArticlesPage() {
     </div>
   );
 }
+export const revalidate = 0;

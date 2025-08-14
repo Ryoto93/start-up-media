@@ -40,3 +40,4 @@ export default async function ArticlePage({ params }: { params: { id: string } }
 
   return <ArticleDetail initialArticle={article as ArticleWithProfile} relatedArticles={relatedArticles} navigation={{ prevArticle, nextArticle, position, daysFromEntrepreneurship }} />;
 }
+export const revalidate = 0;

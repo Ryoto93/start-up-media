@@ -52,3 +52,4 @@ export default async function ProfilePage() {
     </div>
   )
 }
+export const revalidate = 0;
